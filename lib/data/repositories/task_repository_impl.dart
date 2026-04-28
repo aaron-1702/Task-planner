@@ -233,10 +233,20 @@ class TaskRepositoryImpl implements TaskRepository {
       // 1. Push unsynced local changes
       final unsynced = await _local.getUnsyncedTasks();
       if (unsynced.isNotEmpty) {
-        final models =
-            unsynced.map(_tableDataToModel).map(TaskModel.fromEntity).toList();
-        await _remote.upsertTasks(models);
-        for (final t in unsynced) {
+        final toDelete = unsynced.where((t) => t.isDeleted).toList();
+        final toUpsert = unsynced.where((t) => !t.isDeleted).toList();
+
+        if (toUpsert.isNotEmpty) {
+          final models =
+              toUpsert.map(_tableDataToModel).map(TaskModel.fromEntity).toList();
+          await _remote.upsertTasks(models);
+          for (final t in toUpsert) {
+            await _local.markTaskSynced(t.id);
+          }
+        }
+
+        for (final t in toDelete) {
+          await _remote.deleteTask(t.id, t.userId);
           await _local.markTaskSynced(t.id);
         }
       }

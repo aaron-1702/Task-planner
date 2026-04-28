@@ -35,10 +35,9 @@ class SupabaseTaskDataSource {
   }
 
   Future<void> deleteTask(String taskId, String userId) async {
-    // Soft delete: set is_deleted = true
     await _client
         .from(AppConstants.tasksTable)
-        .update({'is_deleted': true, 'updated_at': DateTime.now().toUtc().toIso8601String()})
+        .delete()
         .eq('id', taskId)
         .eq('user_id', userId);
   }

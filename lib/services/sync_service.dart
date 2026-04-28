@@ -76,9 +76,15 @@ class SyncService {
   }
 
   void _onRealtimeChange(PostgresChangePayload payload) {
-    // The Drift stream already reflects changes because the remote DS
-    // writes through to local. But if we want to handle server-push
-    // (e.g., changes from another device), we sync again.
+    // On DELETE from another device: propagate to local DB
+    if (payload.eventType == PostgresChangeEvent.delete) {
+      final taskId = payload.oldRecord['id'] as String?;
+      if (taskId != null) {
+        _taskRepository.deleteTask(taskId);
+      }
+      return;
+    }
+    // For INSERT/UPDATE: pull remote changes
     if (_currentUserId != null) {
       _performSync(_currentUserId!);
     }

@@ -43,8 +43,8 @@ class SyncService {
     // Supabase Realtime subscription
     _subscribeToRealtime(userId);
 
-    // Initial sync on startup
-    await _performSync(userId);
+    // Always do a full pull on startup to catch tasks from other devices
+    await _performFullSync(userId);
   }
 
   Future<void> stop() async {
@@ -103,6 +103,24 @@ class SyncService {
 
   // ── Sync Logic ─────────────────────────────────────────────────────────────
 
+  /// Full sync: pulls ALL remote tasks (ignores lastSync timestamp).
+  /// Used on startup to reliably catch tasks from other devices.
+  Future<void> _performFullSync(String userId) async {
+    final result = await _taskRepository.syncTasks(userId, DateTime.utc(1970));
+    result.fold(
+      (failure) => null,
+      (_) async {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+          AppConstants.lastSyncKey,
+          DateTime.now().toUtc().toIso8601String(),
+        );
+      },
+    );
+  }
+
+  /// Delta sync: pulls only tasks changed since lastSync.
+  /// Used on reconnect to avoid re-downloading everything.
   Future<void> _performSync(String userId) async {
     final prefs = await SharedPreferences.getInstance();
     final lastSyncStr = prefs.getString(AppConstants.lastSyncKey);

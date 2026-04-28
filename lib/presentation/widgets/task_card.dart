@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -117,6 +118,33 @@ class TaskCard extends StatelessWidget {
                                   ),
                             ),
                           ),
+                          // On web, swipe-to-complete is unreliable with mouse → show button
+                          if (kIsWeb)
+                            IconButton(
+                              icon: Icon(
+                                task.status == TaskStatus.done
+                                    ? Icons.undo
+                                    : Icons.check_circle_outline,
+                                size: 18,
+                                color: task.status == TaskStatus.done
+                                    ? AppTheme.statusDone.withOpacity(0.7)
+                                    : AppTheme.statusDone,
+                              ),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              visualDensity: VisualDensity.compact,
+                              tooltip: task.status == TaskStatus.done
+                                  ? 'Reopen'
+                                  : 'Mark as done',
+                              onPressed: () {
+                                context.read<TaskBloc>().add(TaskStatusChanged(
+                                  task.id,
+                                  task.status == TaskStatus.done
+                                      ? TaskStatus.open
+                                      : TaskStatus.done,
+                                ));
+                              },
+                            ),
                           IconButton(
                             icon: Icon(Icons.delete_outline,
                                 size: 18,

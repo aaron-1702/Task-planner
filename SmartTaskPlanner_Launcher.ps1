@@ -6,14 +6,18 @@ $BUILD_DIR   = "$APP_DIR\build\web"
 $PORT        = 8080
 $PROFILE_DIR = "$env:APPDATA\SmartTaskPlanner\ChromeProfile"
 
+# ── Supabase Keys hier eintragen ───────────────────────────────────────────
+$SUPABASE_URL      = "https://pcsngbgxkristsqexgkw.supabase.co"
+$SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjc25nYmd4a3Jpc3RzcWV4Z2t3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczODIyMTMsImV4cCI6MjA5Mjk1ODIxM30.UBwpVsI_1xWVE5xcfwY7wXWWvd3PuMa9x4EYz8c9oZY"
+
 $env:PATH += ";$FLUTTER_BIN"
 
 # ── Beim ersten Start: App bauen ─────────────────────────────────────────────
 if (-not (Test-Path "$BUILD_DIR\index.html")) {
     Set-Location $APP_DIR
     & flutter build web --release `
-        "--dart-define=SUPABASE_URL=https://placeholder.supabase.co" `
-        "--dart-define=SUPABASE_ANON_KEY=placeholder" | Out-Null
+        "--dart-define=SUPABASE_URL=$SUPABASE_URL" `
+        "--dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" | Out-Null
 }
 
 # ── Alten Server auf Port beenden ────────────────────────────────────────────

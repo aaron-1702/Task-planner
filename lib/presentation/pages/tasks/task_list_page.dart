@@ -36,16 +36,27 @@ class _TaskListPageState extends State<TaskListPage>
   Widget build(BuildContext context) {
     return BlocBuilder<TaskBloc, TaskState>(
       builder: (context, state) {
-        final open = state.tasks
-            .where((t) => t.status == TaskStatus.open && !t.isDeleted)
-            .toList();
-        final inProgress = state.tasks
-            .where(
-                (t) => t.status == TaskStatus.inProgress && !t.isDeleted)
-            .toList();
-        final done = state.tasks
-            .where((t) => t.status == TaskStatus.done && !t.isDeleted)
-            .toList();
+        // Apply filter + search query first
+        var filtered = state.tasks.where((t) => !t.isDeleted).toList();
+        final f = state.filter;
+        if (f.priority != null) {
+          filtered = filtered.where((t) => t.priority == f.priority).toList();
+        }
+        if (f.categoryId != null) {
+          filtered = filtered.where((t) => t.categoryId == f.categoryId).toList();
+        }
+        if (f.query != null && f.query!.isNotEmpty) {
+          final q = f.query!.toLowerCase();
+          filtered = filtered
+              .where((t) =>
+                  t.title.toLowerCase().contains(q) ||
+                  (t.description?.toLowerCase().contains(q) ?? false))
+              .toList();
+        }
+
+        final open = filtered.where((t) => t.status == TaskStatus.open).toList();
+        final inProgress = filtered.where((t) => t.status == TaskStatus.inProgress).toList();
+        final done = filtered.where((t) => t.status == TaskStatus.done).toList();
 
         return Scaffold(
           body: NestedScrollView(
@@ -178,64 +189,66 @@ class _FilterSheet extends StatelessWidget {
       maxChildSize: 0.85,
       minChildSize: 0.3,
       expand: false,
-      builder: (context, scrollController) => SingleChildScrollView(
-        controller: scrollController,
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .outlineVariant,
-                  borderRadius: BorderRadius.circular(2),
+      builder: (context, scrollController) => BlocBuilder<TaskBloc, TaskState>(
+        builder: (context, state) {
+          final filter = state.filter;
+          return SingleChildScrollView(
+            controller: scrollController,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 20),
+                Text('Filter Tasks',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 20),
+                Text('Priority',
+                    style: Theme.of(context).textTheme.labelLarge),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: TaskPriority.values.map((p) {
+                    final isSelected = filter.priority == p;
+                    return FilterChip(
+                      label: Text(p.name.capitalize()),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        context.read<TaskBloc>().add(TaskFilterChanged(
+                              filter.copyWith(
+                                priority: selected ? p : null,
+                              ),
+                            ));
+                      },
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 16),
+                if (!filter.isEmpty)
+                  FilledButton.tonal(
+                    onPressed: () {
+                      context.read<TaskBloc>().add(
+                          const TaskFilterChanged(TaskFilter()));
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Clear Filters'),
+                  ),
+              ],
             ),
-            const SizedBox(height: 20),
-            Text('Filter Tasks',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 20),
-            Text('Priority',
-                style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: TaskPriority.values.map((p) {
-                final isSelected = currentFilter.priority == p;
-                return FilterChip(
-                  label: Text(p.name.capitalize()),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    context.read<TaskBloc>().add(TaskFilterChanged(
-                          currentFilter.copyWith(
-                            priority: selected ? p : null,
-                          ),
-                        ));
-                  },
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-            if (currentFilter.priority != null ||
-                currentFilter.categoryId != null)
-              FilledButton.tonal(
-                onPressed: () {
-                  context.read<TaskBloc>().add(
-                      const TaskFilterChanged(TaskFilter()));
-                  Navigator.pop(context);
-                },
-                child: const Text('Clear Filters'),
-              ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

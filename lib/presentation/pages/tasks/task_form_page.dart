@@ -21,6 +21,7 @@ class TaskFormPage extends StatefulWidget {
 class _TaskFormPageState extends State<TaskFormPage> {
   late final FormGroup _form;
   Task? _existingTask;
+  late List<Subtask> _subtasks;
 
   @override
   void initState() {
@@ -33,6 +34,7 @@ class _TaskFormPageState extends State<TaskFormPage> {
     _existingTask = widget.taskId != null
         ? state.tasks.where((t) => t.id == widget.taskId).firstOrNull
         : null;
+    _subtasks = List.from(_existingTask?.subtasks ?? []);
 
     _form = FormGroup({
       'title': FormControl<String>(
@@ -156,6 +158,13 @@ class _TaskFormPageState extends State<TaskFormPage> {
 
             // Recurrence
             _RecurrenceSection(form: _form),
+            const SizedBox(height: 20),
+
+            // Subtasks
+            _SubtasksEditor(
+              subtasks: _subtasks,
+              onChanged: (updated) => setState(() => _subtasks = updated),
+            ),
             const SizedBox(height: 80),
           ],
         ),
@@ -211,6 +220,7 @@ class _TaskFormPageState extends State<TaskFormPage> {
               tags: tags,
               recurrenceRule: rule,
               estimatedMinutes: estimatedMinutes,
+              subtasks: _subtasks,
               updatedAt: DateTime.now().toUtc(),
             ),
           ));
@@ -224,6 +234,7 @@ class _TaskFormPageState extends State<TaskFormPage> {
             tags: tags,
             recurrenceRule: rule,
             estimatedMinutes: estimatedMinutes,
+            subtasks: _subtasks,
           ));
     }
 
@@ -381,4 +392,105 @@ class _RecurrenceSection extends StatelessWidget {
 extension on String {
   String capitalize() =>
       isEmpty ? this : '${this[0].toUpperCase()}${substring(1)}';
+}
+
+// -- Subtasks Editor ---------------------------------------------------------
+
+class _SubtasksEditor extends StatefulWidget {
+  final List<Subtask> subtasks;
+  final ValueChanged<List<Subtask>> onChanged;
+
+  const _SubtasksEditor({required this.subtasks, required this.onChanged});
+
+  @override
+  State<_SubtasksEditor> createState() => _SubtasksEditorState();
+}
+
+class _SubtasksEditorState extends State<_SubtasksEditor> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _add() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+    final updated = [
+      ...widget.subtasks,
+      Subtask(id: DateTime.now().millisecondsSinceEpoch.toString(), title: text),
+    ];
+    widget.onChanged(updated);
+    _controller.clear();
+  }
+
+  void _remove(int index) {
+    final updated = [...widget.subtasks]..removeAt(index);
+    widget.onChanged(updated);
+  }
+
+  void _toggle(int index, bool? value) {
+    final s = widget.subtasks[index];
+    final updated = [...widget.subtasks];
+    updated[index] = s.copyWith(isDone: value ?? false);
+    widget.onChanged(updated);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Subtasks', style: theme.textTheme.titleSmall?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+        )),
+        const SizedBox(height: 8),
+        ...widget.subtasks.asMap().entries.map((e) => CheckboxListTile(
+              value: e.value.isDone,
+              onChanged: (v) => _toggle(e.key, v),
+              title: Text(
+                e.value.title,
+                style: e.value.isDone
+                    ? TextStyle(
+                        decoration: TextDecoration.lineThrough,
+                        color: colorScheme.onSurfaceVariant,
+                      )
+                    : null,
+              ),
+              secondary: IconButton(
+                icon: const Icon(Icons.close, size: 18),
+                onPressed: () => _remove(e.key),
+              ),
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
+            )),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                decoration: const InputDecoration(
+                  hintText: 'Add subtask...',
+                  isDense: true,
+                ),
+                onSubmitted: (_) => _add(),
+                textInputAction: TextInputAction.done,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: _add,
+              tooltip: 'Add subtask',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }

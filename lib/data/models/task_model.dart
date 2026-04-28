@@ -20,6 +20,7 @@ class TaskModel extends Task {
     super.isDeleted,
     super.estimatedMinutes,
     super.pomodoroCount,
+    super.subtasks,
   });
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
@@ -48,6 +49,17 @@ class TaskModel extends Task {
       isDeleted: json['is_deleted'] as bool? ?? false,
       estimatedMinutes: json['estimated_minutes'] as int?,
       pomodoroCount: json['pomodoro_count'] as int?,
+      subtasks: json['subtasks'] != null
+          ? (json['subtasks'] is String
+              ? (jsonDecode(json['subtasks'] as String) as List)
+              : (json['subtasks'] as List))
+              .map((e) => Subtask(
+                    id: e['id'] as String,
+                    title: e['title'] as String,
+                    isDone: e['is_done'] as bool? ?? false,
+                  ))
+              .toList()
+          : const [],
     );
   }
 
@@ -70,6 +82,9 @@ class TaskModel extends Task {
       'is_deleted': isDeleted,
       'estimated_minutes': estimatedMinutes,
       'pomodoro_count': pomodoroCount,
+      'subtasks': subtasks
+          .map((s) => {'id': s.id, 'title': s.title, 'is_done': s.isDone})
+          .toList(),
     };
   }
 
@@ -112,6 +127,7 @@ class TaskModel extends Task {
       isDeleted: task.isDeleted,
       estimatedMinutes: task.estimatedMinutes,
       pomodoroCount: task.pomodoroCount,
+      subtasks: task.subtasks,
     );
   }
 }

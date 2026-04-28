@@ -214,6 +214,8 @@ class TaskCard extends StatelessWidget {
                           ...task.tags
                               .take(2)
                               .map((tag) => _TagChip(tag: tag)),
+                          if (task.subtasks.isNotEmpty)
+                            _SubtaskProgressChip(subtasks: task.subtasks),
                         ],
                       ),
                     ],
@@ -374,6 +376,41 @@ class _Chip extends StatelessWidget {
               fontWeight: FontWeight.w500,
               color: color,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SubtaskProgressChip extends StatelessWidget {
+  final List<Subtask> subtasks;
+  const _SubtaskProgressChip({required this.subtasks});
+
+  @override
+  Widget build(BuildContext context) {
+    final done = subtasks.where((s) => s.isDone).length;
+    final total = subtasks.length;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.secondaryContainer,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            done == total ? Icons.checklist_rtl : Icons.checklist,
+            size: 12,
+            color: Theme.of(context).colorScheme.onSecondaryContainer,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '$done/$total',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                ),
           ),
         ],
       ),

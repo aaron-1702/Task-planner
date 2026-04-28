@@ -84,6 +84,11 @@ class TaskDetailPage extends StatelessWidget {
                             style:
                                 Theme.of(context).textTheme.bodyMedium),
                       ),
+                    if (task.subtasks.isNotEmpty)
+                      _Section(
+                        title: 'Subtasks',
+                        child: _SubtaskChecklist(task: task),
+                      ),
                     _Section(
                       title: 'Details',
                       child: _DetailGrid(task: task),
@@ -364,4 +369,46 @@ class _BottomActionBar extends StatelessWidget {
 extension StringCapitalize on String {
   String capitalize() =>
       isEmpty ? this : '${this[0].toUpperCase()}${substring(1)}';
+}
+
+// -- Subtask Checklist (Detail Page) -----------------------------------------
+
+class _SubtaskChecklist extends StatelessWidget {
+  final Task task;
+  const _SubtaskChecklist({required this.task});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: task.subtasks.asMap().entries.map((e) {
+        final subtask = e.value;
+        return CheckboxListTile(
+          value: subtask.isDone,
+          onChanged: (value) {
+            final updated = task.subtasks.map((s) {
+              return s.id == subtask.id ? s.copyWith(isDone: value ?? false) : s;
+            }).toList();
+            context.read<TaskBloc>().add(
+                  TaskUpdated(task.copyWith(
+                    subtasks: updated,
+                    updatedAt: DateTime.now().toUtc(),
+                  )),
+                );
+          },
+          title: Text(
+            subtask.title,
+            style: subtask.isDone
+                ? TextStyle(
+                    decoration: TextDecoration.lineThrough,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  )
+                : null,
+          ),
+          controlAffinity: ListTileControlAffinity.leading,
+          contentPadding: EdgeInsets.zero,
+          dense: true,
+        );
+      }).toList(),
+    );
+  }
 }

@@ -341,6 +341,15 @@ class TaskRepositoryImpl implements TaskRepository {
       isDeleted: data.isDeleted,
       estimatedMinutes: data.estimatedMinutes,
       pomodoroCount: data.pomodoroCount,
+      subtasks: data.subtasks.isNotEmpty
+          ? (jsonDecode(data.subtasks) as List)
+              .map((e) => Subtask(
+                    id: e['id'] as String,
+                    title: e['title'] as String,
+                    isDone: e['is_done'] as bool? ?? false,
+                  ))
+              .toList()
+          : const [],
     );
   }
 
@@ -364,6 +373,9 @@ class TaskRepositoryImpl implements TaskRepository {
       isDeleted: model.isDeleted,
       estimatedMinutes: model.estimatedMinutes,
       pomodoroCount: model.pomodoroCount,
+      subtasks: jsonEncode(model.subtasks
+          .map((s) => {'id': s.id, 'title': s.title, 'is_done': s.isDone})
+          .toList()),
       isSynced: isSynced,
     );
   }

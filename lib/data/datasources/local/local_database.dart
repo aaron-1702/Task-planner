@@ -25,6 +25,7 @@ class TasksTable extends Table {
       boolean().withDefault(const Constant(false))();
   IntColumn get estimatedMinutes => integer().nullable()();
   IntColumn get pomodoroCount => integer().nullable()();
+  TextColumn get subtasks => text().withDefault(const Constant('[]'))(); // JSON
   BoolColumn get isSynced =>
       boolean().withDefault(const Constant(false))();
 
@@ -66,13 +67,15 @@ class LocalDatabase extends _$LocalDatabase {
   LocalDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) => m.createAll(),
         onUpgrade: (m, from, to) async {
-          // Handle schema migrations here
+          if (from < 2) {
+            await m.addColumn(tasksTable, tasksTable.subtasks);
+          }
         },
       );
 

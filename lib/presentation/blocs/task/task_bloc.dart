@@ -71,6 +71,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
       createdAt: now,
       updatedAt: now,
       estimatedMinutes: event.estimatedMinutes,
+      subtasks: event.subtasks,
     );
 
     final result = await _createTask(task);

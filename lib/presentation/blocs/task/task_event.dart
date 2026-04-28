@@ -23,6 +23,7 @@ class TaskCreated extends TaskEvent {
   final String? categoryId;
   final RecurrenceRule? recurrenceRule;
   final int? estimatedMinutes;
+  final List<Subtask> subtasks;
 
   const TaskCreated({
     required this.userId,
@@ -34,12 +35,13 @@ class TaskCreated extends TaskEvent {
     this.categoryId,
     this.recurrenceRule,
     this.estimatedMinutes,
+    this.subtasks = const [],
   });
 
   @override
   List<Object?> get props => [
         userId, title, description, deadline, priority,
-        tags, categoryId, recurrenceRule, estimatedMinutes,
+        tags, categoryId, recurrenceRule, estimatedMinutes, subtasks,
       ];
 }
 

@@ -104,6 +104,14 @@ class $TasksTableTable extends TasksTable
   late final GeneratedColumn<int> pomodoroCount = GeneratedColumn<int>(
       'pomodoro_count', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _subtasksMeta =
+      const VerificationMeta('subtasks');
+  @override
+  late final GeneratedColumn<String> subtasks = GeneratedColumn<String>(
+      'subtasks', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('[]'));
   static const VerificationMeta _isSyncedMeta =
       const VerificationMeta('isSynced');
   @override
@@ -131,6 +139,7 @@ class $TasksTableTable extends TasksTable
         isDeleted,
         estimatedMinutes,
         pomodoroCount,
+        subtasks,
         isSynced
       ];
   @override
@@ -222,6 +231,10 @@ class $TasksTableTable extends TasksTable
           pomodoroCount.isAcceptableOrUnknown(
               data['pomodoro_count']!, _pomodoroCountMeta));
     }
+    if (data.containsKey('subtasks')) {
+      context.handle(_subtasksMeta,
+          subtasks.isAcceptableOrUnknown(data['subtasks']!, _subtasksMeta));
+    }
     if (data.containsKey('is_synced')) {
       context.handle(_isSyncedMeta,
           isSynced.isAcceptableOrUnknown(data['is_synced']!, _isSyncedMeta));
@@ -265,6 +278,8 @@ class $TasksTableTable extends TasksTable
           .read(DriftSqlType.int, data['${effectivePrefix}estimated_minutes']),
       pomodoroCount: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}pomodoro_count']),
+      subtasks: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}subtasks'])!,
       isSynced: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_synced'])!,
     );
@@ -292,6 +307,7 @@ class TasksTableData extends DataClass implements Insertable<TasksTableData> {
   final bool isDeleted;
   final int? estimatedMinutes;
   final int? pomodoroCount;
+  final String subtasks;
   final bool isSynced;
   const TasksTableData(
       {required this.id,
@@ -309,6 +325,7 @@ class TasksTableData extends DataClass implements Insertable<TasksTableData> {
       required this.isDeleted,
       this.estimatedMinutes,
       this.pomodoroCount,
+      required this.subtasks,
       required this.isSynced});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -340,6 +357,7 @@ class TasksTableData extends DataClass implements Insertable<TasksTableData> {
     if (!nullToAbsent || pomodoroCount != null) {
       map['pomodoro_count'] = Variable<int>(pomodoroCount);
     }
+    map['subtasks'] = Variable<String>(subtasks);
     map['is_synced'] = Variable<bool>(isSynced);
     return map;
   }
@@ -373,6 +391,7 @@ class TasksTableData extends DataClass implements Insertable<TasksTableData> {
       pomodoroCount: pomodoroCount == null && nullToAbsent
           ? const Value.absent()
           : Value(pomodoroCount),
+      subtasks: Value(subtasks),
       isSynced: Value(isSynced),
     );
   }
@@ -396,6 +415,7 @@ class TasksTableData extends DataClass implements Insertable<TasksTableData> {
       isDeleted: serializer.fromJson<bool>(json['isDeleted']),
       estimatedMinutes: serializer.fromJson<int?>(json['estimatedMinutes']),
       pomodoroCount: serializer.fromJson<int?>(json['pomodoroCount']),
+      subtasks: serializer.fromJson<String>(json['subtasks']),
       isSynced: serializer.fromJson<bool>(json['isSynced']),
     );
   }
@@ -418,6 +438,7 @@ class TasksTableData extends DataClass implements Insertable<TasksTableData> {
       'isDeleted': serializer.toJson<bool>(isDeleted),
       'estimatedMinutes': serializer.toJson<int?>(estimatedMinutes),
       'pomodoroCount': serializer.toJson<int?>(pomodoroCount),
+      'subtasks': serializer.toJson<String>(subtasks),
       'isSynced': serializer.toJson<bool>(isSynced),
     };
   }
@@ -438,6 +459,7 @@ class TasksTableData extends DataClass implements Insertable<TasksTableData> {
           bool? isDeleted,
           Value<int?> estimatedMinutes = const Value.absent(),
           Value<int?> pomodoroCount = const Value.absent(),
+          String? subtasks,
           bool? isSynced}) =>
       TasksTableData(
         id: id ?? this.id,
@@ -459,6 +481,7 @@ class TasksTableData extends DataClass implements Insertable<TasksTableData> {
             : this.estimatedMinutes,
         pomodoroCount:
             pomodoroCount.present ? pomodoroCount.value : this.pomodoroCount,
+        subtasks: subtasks ?? this.subtasks,
         isSynced: isSynced ?? this.isSynced,
       );
   TasksTableData copyWithCompanion(TasksTableCompanion data) {
@@ -486,6 +509,7 @@ class TasksTableData extends DataClass implements Insertable<TasksTableData> {
       pomodoroCount: data.pomodoroCount.present
           ? data.pomodoroCount.value
           : this.pomodoroCount,
+      subtasks: data.subtasks.present ? data.subtasks.value : this.subtasks,
       isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
     );
   }
@@ -508,6 +532,7 @@ class TasksTableData extends DataClass implements Insertable<TasksTableData> {
           ..write('isDeleted: $isDeleted, ')
           ..write('estimatedMinutes: $estimatedMinutes, ')
           ..write('pomodoroCount: $pomodoroCount, ')
+          ..write('subtasks: $subtasks, ')
           ..write('isSynced: $isSynced')
           ..write(')'))
         .toString();
@@ -530,6 +555,7 @@ class TasksTableData extends DataClass implements Insertable<TasksTableData> {
       isDeleted,
       estimatedMinutes,
       pomodoroCount,
+      subtasks,
       isSynced);
   @override
   bool operator ==(Object other) =>
@@ -550,6 +576,7 @@ class TasksTableData extends DataClass implements Insertable<TasksTableData> {
           other.isDeleted == this.isDeleted &&
           other.estimatedMinutes == this.estimatedMinutes &&
           other.pomodoroCount == this.pomodoroCount &&
+          other.subtasks == this.subtasks &&
           other.isSynced == this.isSynced);
 }
 
@@ -569,6 +596,7 @@ class TasksTableCompanion extends UpdateCompanion<TasksTableData> {
   final Value<bool> isDeleted;
   final Value<int?> estimatedMinutes;
   final Value<int?> pomodoroCount;
+  final Value<String> subtasks;
   final Value<bool> isSynced;
   final Value<int> rowid;
   const TasksTableCompanion({
@@ -587,6 +615,7 @@ class TasksTableCompanion extends UpdateCompanion<TasksTableData> {
     this.isDeleted = const Value.absent(),
     this.estimatedMinutes = const Value.absent(),
     this.pomodoroCount = const Value.absent(),
+    this.subtasks = const Value.absent(),
     this.isSynced = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -606,6 +635,7 @@ class TasksTableCompanion extends UpdateCompanion<TasksTableData> {
     this.isDeleted = const Value.absent(),
     this.estimatedMinutes = const Value.absent(),
     this.pomodoroCount = const Value.absent(),
+    this.subtasks = const Value.absent(),
     this.isSynced = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
@@ -629,6 +659,7 @@ class TasksTableCompanion extends UpdateCompanion<TasksTableData> {
     Expression<bool>? isDeleted,
     Expression<int>? estimatedMinutes,
     Expression<int>? pomodoroCount,
+    Expression<String>? subtasks,
     Expression<bool>? isSynced,
     Expression<int>? rowid,
   }) {
@@ -648,6 +679,7 @@ class TasksTableCompanion extends UpdateCompanion<TasksTableData> {
       if (isDeleted != null) 'is_deleted': isDeleted,
       if (estimatedMinutes != null) 'estimated_minutes': estimatedMinutes,
       if (pomodoroCount != null) 'pomodoro_count': pomodoroCount,
+      if (subtasks != null) 'subtasks': subtasks,
       if (isSynced != null) 'is_synced': isSynced,
       if (rowid != null) 'rowid': rowid,
     });
@@ -669,6 +701,7 @@ class TasksTableCompanion extends UpdateCompanion<TasksTableData> {
       Value<bool>? isDeleted,
       Value<int?>? estimatedMinutes,
       Value<int?>? pomodoroCount,
+      Value<String>? subtasks,
       Value<bool>? isSynced,
       Value<int>? rowid}) {
     return TasksTableCompanion(
@@ -687,6 +720,7 @@ class TasksTableCompanion extends UpdateCompanion<TasksTableData> {
       isDeleted: isDeleted ?? this.isDeleted,
       estimatedMinutes: estimatedMinutes ?? this.estimatedMinutes,
       pomodoroCount: pomodoroCount ?? this.pomodoroCount,
+      subtasks: subtasks ?? this.subtasks,
       isSynced: isSynced ?? this.isSynced,
       rowid: rowid ?? this.rowid,
     );
@@ -740,6 +774,9 @@ class TasksTableCompanion extends UpdateCompanion<TasksTableData> {
     if (pomodoroCount.present) {
       map['pomodoro_count'] = Variable<int>(pomodoroCount.value);
     }
+    if (subtasks.present) {
+      map['subtasks'] = Variable<String>(subtasks.value);
+    }
     if (isSynced.present) {
       map['is_synced'] = Variable<bool>(isSynced.value);
     }
@@ -767,6 +804,7 @@ class TasksTableCompanion extends UpdateCompanion<TasksTableData> {
           ..write('isDeleted: $isDeleted, ')
           ..write('estimatedMinutes: $estimatedMinutes, ')
           ..write('pomodoroCount: $pomodoroCount, ')
+          ..write('subtasks: $subtasks, ')
           ..write('isSynced: $isSynced, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1547,6 +1585,7 @@ typedef $$TasksTableTableCreateCompanionBuilder = TasksTableCompanion Function({
   Value<bool> isDeleted,
   Value<int?> estimatedMinutes,
   Value<int?> pomodoroCount,
+  Value<String> subtasks,
   Value<bool> isSynced,
   Value<int> rowid,
 });
@@ -1566,6 +1605,7 @@ typedef $$TasksTableTableUpdateCompanionBuilder = TasksTableCompanion Function({
   Value<bool> isDeleted,
   Value<int?> estimatedMinutes,
   Value<int?> pomodoroCount,
+  Value<String> subtasks,
   Value<bool> isSynced,
   Value<int> rowid,
 });
@@ -1625,6 +1665,9 @@ class $$TasksTableTableFilterComposer
 
   ColumnFilters<int> get pomodoroCount => $composableBuilder(
       column: $table.pomodoroCount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get subtasks => $composableBuilder(
+      column: $table.subtasks, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isSynced => $composableBuilder(
       column: $table.isSynced, builder: (column) => ColumnFilters(column));
@@ -1687,6 +1730,9 @@ class $$TasksTableTableOrderingComposer
       column: $table.pomodoroCount,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get subtasks => $composableBuilder(
+      column: $table.subtasks, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<bool> get isSynced => $composableBuilder(
       column: $table.isSynced, builder: (column) => ColumnOrderings(column));
 }
@@ -1745,6 +1791,9 @@ class $$TasksTableTableAnnotationComposer
   GeneratedColumn<int> get pomodoroCount => $composableBuilder(
       column: $table.pomodoroCount, builder: (column) => column);
 
+  GeneratedColumn<String> get subtasks =>
+      $composableBuilder(column: $table.subtasks, builder: (column) => column);
+
   GeneratedColumn<bool> get isSynced =>
       $composableBuilder(column: $table.isSynced, builder: (column) => column);
 }
@@ -1790,6 +1839,7 @@ class $$TasksTableTableTableManager extends RootTableManager<
             Value<bool> isDeleted = const Value.absent(),
             Value<int?> estimatedMinutes = const Value.absent(),
             Value<int?> pomodoroCount = const Value.absent(),
+            Value<String> subtasks = const Value.absent(),
             Value<bool> isSynced = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -1809,6 +1859,7 @@ class $$TasksTableTableTableManager extends RootTableManager<
             isDeleted: isDeleted,
             estimatedMinutes: estimatedMinutes,
             pomodoroCount: pomodoroCount,
+            subtasks: subtasks,
             isSynced: isSynced,
             rowid: rowid,
           ),
@@ -1828,6 +1879,7 @@ class $$TasksTableTableTableManager extends RootTableManager<
             Value<bool> isDeleted = const Value.absent(),
             Value<int?> estimatedMinutes = const Value.absent(),
             Value<int?> pomodoroCount = const Value.absent(),
+            Value<String> subtasks = const Value.absent(),
             Value<bool> isSynced = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -1847,6 +1899,7 @@ class $$TasksTableTableTableManager extends RootTableManager<
             isDeleted: isDeleted,
             estimatedMinutes: estimatedMinutes,
             pomodoroCount: pomodoroCount,
+            subtasks: subtasks,
             isSynced: isSynced,
             rowid: rowid,
           ),

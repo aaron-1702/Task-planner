@@ -6,6 +6,24 @@ enum TaskStatus { open, inProgress, done }
 
 enum RecurrenceType { none, daily, weekly, monthly, custom }
 
+class Subtask extends Equatable {
+  final String id;
+  final String title;
+  final bool isDone;
+
+  const Subtask({required this.id, required this.title, this.isDone = false});
+
+  Subtask copyWith({String? id, String? title, bool? isDone}) =>
+      Subtask(
+        id: id ?? this.id,
+        title: title ?? this.title,
+        isDone: isDone ?? this.isDone,
+      );
+
+  @override
+  List<Object?> get props => [id, title, isDone];
+}
+
 class Task extends Equatable {
   final String id;
   final String userId;
@@ -22,6 +40,7 @@ class Task extends Equatable {
   final bool isDeleted;
   final int? estimatedMinutes;
   final int? pomodoroCount;
+  final List<Subtask> subtasks;
 
   const Task({
     required this.id,
@@ -39,6 +58,7 @@ class Task extends Equatable {
     this.isDeleted = false,
     this.estimatedMinutes,
     this.pomodoroCount,
+    this.subtasks = const [],
   });
 
   bool get isOverdue =>
@@ -70,6 +90,7 @@ class Task extends Equatable {
     bool? isDeleted,
     int? estimatedMinutes,
     int? pomodoroCount,
+    List<Subtask>? subtasks,
   }) {
     return Task(
       id: id ?? this.id,
@@ -87,6 +108,7 @@ class Task extends Equatable {
       isDeleted: isDeleted ?? this.isDeleted,
       estimatedMinutes: estimatedMinutes ?? this.estimatedMinutes,
       pomodoroCount: pomodoroCount ?? this.pomodoroCount,
+      subtasks: subtasks ?? this.subtasks,
     );
   }
 
@@ -94,7 +116,7 @@ class Task extends Equatable {
   List<Object?> get props => [
         id, userId, title, description, deadline, priority, status,
         tags, categoryId, recurrenceRule, createdAt, updatedAt,
-        isDeleted, estimatedMinutes, pomodoroCount,
+        isDeleted, estimatedMinutes, pomodoroCount, subtasks,
       ];
 }
 

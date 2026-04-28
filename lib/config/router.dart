@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,10 +21,20 @@ class AppRouter {
   static final _rootNavigatorKey = GlobalKey<NavigatorState>();
   static final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
-  static final GoRouter router = GoRouter(
+  static GoRouter createRouter(AuthBloc authBloc) => GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/dashboard',
-    refreshListenable: _GoRouterRefreshStream(),
+    refreshListenable: _GoRouterRefreshStream(authBloc.stream),
+    redirect: (context, state) {
+      final authState = authBloc.state;
+      final isAuthRoute = state.matchedLocation.startsWith('/auth');
+      if (authState is AuthInitial || authState is AuthLoading) return null;
+      if (authState is AuthUnauthenticated || authState is AuthError) {
+        return isAuthRoute ? null : '/auth/login';
+      }
+      // AuthAuthenticated
+      return isAuthRoute ? '/dashboard' : null;
+    },
     routes: [
       // Auth Routes
       GoRoute(
@@ -104,8 +115,15 @@ class AppRouter {
 
 /// Bridges AuthBloc state changes to GoRouter's refresh mechanism.
 class _GoRouterRefreshStream extends ChangeNotifier {
-  _GoRouterRefreshStream() {
-    // Listen for auth state changes to trigger router refresh
-    // In real app wire to AuthBloc stream
+  late final StreamSubscription<dynamic> _subscription;
+
+  _GoRouterRefreshStream(Stream<dynamic> stream) {
+    _subscription = stream.listen((_) => notifyListeners());
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
 }

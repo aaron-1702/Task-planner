@@ -64,6 +64,26 @@ if (-not $chrome) {
     exit
 }
 
+# ── Profil-Cache leeren wenn neuer Build erkannt ─────────────────────────────
+# Build-ID = Hash der main.dart.js (ändert sich bei jedem neuen Build)
+$mainJs = "$BUILD_DIR\main.dart.js"
+$buildIdFile  = "$PROFILE_DIR\.last_build_id"
+$currentBuildId = if (Test-Path $mainJs) {
+    (Get-FileHash $mainJs -Algorithm MD5).Hash
+} else { "unknown" }
+$cachedBuildId = if (Test-Path $buildIdFile) { Get-Content $buildIdFile -Raw } else { "" }
+
+if ($currentBuildId.Trim() -ne $cachedBuildId.Trim()) {
+    # Service-Worker und Cache löschen, Login-Daten bleiben erhalten
+    Remove-Item -Recurse -Force "$PROFILE_DIR\Default\Service Worker" -ErrorAction SilentlyContinue
+    Remove-Item -Recurse -Force "$PROFILE_DIR\Default\Cache"          -ErrorAction SilentlyContinue
+    Remove-Item -Recurse -Force "$PROFILE_DIR\Default\Code Cache"     -ErrorAction SilentlyContinue
+    Remove-Item -Recurse -Force "$PROFILE_DIR\Default\GPUCache"       -ErrorAction SilentlyContinue
+    # Neue Build-ID speichern
+    New-Item -ItemType Directory -Force -Path $PROFILE_DIR | Out-Null
+    Set-Content -Path $buildIdFile -Value $currentBuildId
+}
+
 # ── Dediziertes App-Profil anlegen (Daten bleiben erhalten) ──────────────────
 New-Item -ItemType Directory -Force -Path $PROFILE_DIR | Out-Null
 

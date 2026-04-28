@@ -19,17 +19,33 @@ class TaskCard extends StatelessWidget {
 
     return Dismissible(
       key: Key(task.id),
-      direction: DismissDirection.endToStart,
+      direction: DismissDirection.horizontal,
+      // swipe right → complete / uncomplete
       background: Container(
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.only(left: 20),
+        decoration: BoxDecoration(
+          color: AppTheme.statusDone,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Icon(
+          task.status == TaskStatus.done ? Icons.undo : Icons.check_circle_outline,
+          color: Colors.white,
+          size: 28,
+        ),
+      ),
+      // swipe left → delete
+      secondaryBackground: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
           color: AppTheme.priorityHigh,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Icon(Icons.delete_outline, color: Colors.white),
+        child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
       ),
-      confirmDismiss: (_) async {
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.startToEnd) return true;
         return await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -51,8 +67,15 @@ class TaskCard extends StatelessWidget {
           ),
         );
       },
-      onDismissed: (_) {
-        context.read<TaskBloc>().add(TaskDeleted(task.id));
+      onDismissed: (direction) {
+        if (direction == DismissDirection.startToEnd) {
+          context.read<TaskBloc>().add(TaskStatusChanged(
+            task.id,
+            task.status == TaskStatus.done ? TaskStatus.open : TaskStatus.done,
+          ));
+        } else {
+          context.read<TaskBloc>().add(TaskDeleted(task.id));
+        }
       },
       child: Card(
         child: InkWell(

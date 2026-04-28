@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +19,8 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _selectedIndex = 0;
+  bool _isOnline = true;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
 
   static const _destinations = [
     (label: 'Dashboard', icon: Icons.dashboard_outlined, route: '/dashboard'),
@@ -29,6 +33,10 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
+    _connectivitySub = Connectivity().onConnectivityChanged.listen((results) {
+      final online = !results.contains(ConnectivityResult.none);
+      if (mounted && online != _isOnline) setState(() => _isOnline = online);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authState = context.read<AuthBloc>().state;
       if (authState is AuthAuthenticated) {
@@ -38,6 +46,12 @@ class _MainShellState extends State<MainShell> {
         getIt<SyncService>().start(authState.user.id);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _connectivitySub?.cancel();
+    super.dispose();
   }
 
   @override
@@ -99,7 +113,31 @@ class _MainShellState extends State<MainShell> {
                         ))
                     .toList(),
               ),
-            Expanded(child: widget.child),
+            Expanded(
+              child: Column(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    height: _isOnline ? 0.0 : 32.0,
+                    color: Colors.orange.shade700,
+                    child: _isOnline
+                        ? null
+                        : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.wifi_off,
+                                  size: 14, color: Colors.white),
+                              SizedBox(width: 6),
+                              Text('No internet connection',
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 12)),
+                            ],
+                          ),
+                  ),
+                  Expanded(child: widget.child),
+                ],
+              ),
+            ),
           ],
         ),
         bottomNavigationBar: isWide

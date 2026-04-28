@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../blocs/task/task_bloc.dart';
 import '../../widgets/task_card.dart';
 import '../../../domain/entities/task.dart';
+import '../../../core/di/injection.dart';
+import '../../../services/sync_service.dart';
 
 class TaskListPage extends StatefulWidget {
   const TaskListPage({super.key});
@@ -110,9 +112,24 @@ class _TaskListPageState extends State<TaskListPage>
             body: TabBarView(
               controller: _tabController,
               children: [
-                _TaskList(tasks: open),
-                _TaskList(tasks: inProgress),
-                _TaskList(tasks: done),
+                _TaskList(
+                  tasks: open,
+                  emptyIcon: Icons.check_circle_outline,
+                  emptyTitle: 'All clear!',
+                  emptySubtitle: 'No open tasks – tap + to create one.',
+                ),
+                _TaskList(
+                  tasks: inProgress,
+                  emptyIcon: Icons.play_circle_outline,
+                  emptyTitle: 'Nothing in progress',
+                  emptySubtitle: 'Open a task and start working on it.',
+                ),
+                _TaskList(
+                  tasks: done,
+                  emptyIcon: Icons.emoji_events_outlined,
+                  emptyTitle: 'No completed tasks yet',
+                  emptySubtitle: 'Complete tasks to track your progress.',
+                ),
               ],
             ),
           ),
@@ -136,43 +153,70 @@ class _TaskListPageState extends State<TaskListPage>
 
 class _TaskList extends StatelessWidget {
   final List<Task> tasks;
-  const _TaskList({required this.tasks});
+  final IconData emptyIcon;
+  final String emptyTitle;
+  final String emptySubtitle;
+
+  const _TaskList({
+    required this.tasks,
+    this.emptyIcon = Icons.inbox_outlined,
+    this.emptyTitle = 'No tasks here',
+    this.emptySubtitle = '',
+  });
 
   @override
   Widget build(BuildContext context) {
     if (tasks.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.inbox_outlined,
-                size: 64,
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withOpacity(0.3)),
-            const SizedBox(height: 16),
-            Text('No tasks here',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withOpacity(0.5),
-                    )),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(emptyIcon,
+                  size: 64,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withOpacity(0.25)),
+              const SizedBox(height: 16),
+              Text(emptyTitle,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.6),
+                      )),
+              if (emptySubtitle.isNotEmpty) ...[                const SizedBox(height: 8),
+                Text(emptySubtitle,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.4),
+                        )),
+              ],
+            ],
+          ),
         ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-      itemCount: tasks.length,
-      itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: TaskCard(task: tasks[index])
-            .animate()
-            .fadeIn(duration: 300.ms, delay: (index * 40).ms)
-            .slideX(begin: 0.05),
+    return RefreshIndicator(
+      onRefresh: () => getIt<SyncService>().forceSync(),
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+        itemCount: tasks.length,
+        itemBuilder: (context, index) => Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: TaskCard(task: tasks[index])
+              .animate()
+              .fadeIn(duration: 300.ms, delay: (index * 40).ms)
+              .slideX(begin: 0.05),
+        ),
       ),
     );
   }

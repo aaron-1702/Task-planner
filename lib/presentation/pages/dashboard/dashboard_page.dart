@@ -11,6 +11,8 @@ import '../../widgets/task_card.dart';
 import '../../widgets/stats_summary_card.dart';
 import '../../../domain/entities/task.dart';
 import '../../../config/theme.dart';
+import '../../../core/di/injection.dart';
+import '../../../services/sync_service.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -22,10 +24,12 @@ class DashboardPage extends StatelessWidget {
         final user = authState is AuthAuthenticated ? authState.user : null;
         return BlocBuilder<TaskBloc, TaskState>(
           builder: (context, taskState) {
-            return CustomScrollView(
-              slivers: [
-                _buildAppBar(context, user?.displayName ?? user?.email ?? ''),
-                SliverPadding(
+            return RefreshIndicator(
+              onRefresh: () => getIt<SyncService>().forceSync(),
+              child: CustomScrollView(
+                slivers: [
+                  _buildAppBar(context, user?.displayName ?? user?.email ?? ''),
+                  SliverPadding(
                   padding: const EdgeInsets.all(20),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
@@ -70,9 +74,10 @@ class DashboardPage extends StatelessWidget {
                   ),
                 ),
               ],
-            );
-          },
-        );
+            ),
+          );
+        },
+      );
       },
     );
   }

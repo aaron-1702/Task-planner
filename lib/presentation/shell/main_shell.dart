@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../blocs/auth/auth_bloc.dart';
 import '../blocs/task/task_bloc.dart';
+import '../../core/di/injection.dart';
+import '../../services/sync_service.dart';
 
 class MainShell extends StatefulWidget {
   final Widget child;
@@ -27,13 +29,13 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
-    // Trigger task subscription immediately if already authenticated
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authState = context.read<AuthBloc>().state;
       if (authState is AuthAuthenticated) {
         context.read<TaskBloc>().add(
               TaskSubscriptionRequested(authState.user.id),
             );
+        getIt<SyncService>().start(authState.user.id);
       }
     });
   }
@@ -56,11 +58,13 @@ class _MainShellState extends State<MainShell> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthUnauthenticated) {
+          getIt<SyncService>().stop();
           context.go('/auth/login');
         } else if (state is AuthAuthenticated) {
           context.read<TaskBloc>().add(
                 TaskSubscriptionRequested(state.user.id),
               );
+          getIt<SyncService>().start(state.user.id);
         }
       },
       child: Scaffold(

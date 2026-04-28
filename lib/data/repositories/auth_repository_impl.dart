@@ -52,13 +52,17 @@ class AuthRepositoryImpl implements AuthRepository {
       final user = _mapUser(response.user);
       if (user == null) return const Left(AuthFailure('Sign up failed'));
 
-      // Create profile row (Supabase trigger also creates one, but be explicit)
-      await _client.from('user_profiles').upsert({
-        'id': user.id,
-        'email': email,
-        'display_name': displayName,
-        'created_at': DateTime.now().toUtc().toIso8601String(),
-      });
+      // Note: Supabase trigger handle_new_user() creates the profile row automatically.
+      // We attempt an upsert as a fallback but ignore any errors.
+      try {
+        await _client.from('user_profiles').upsert({
+          'id': user.id,
+          'email': email,
+          'display_name': displayName,
+        });
+      } catch (_) {
+        // Trigger already created the profile — ignore duplicate/RLS errors
+      }
 
       return Right(user);
     } on AuthException catch (e) {

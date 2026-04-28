@@ -76,6 +76,9 @@ dependencies:
   # Charts & Stats
   fl_chart: ^0.68.0
 
+  # PDF Export
+  pdf: ^3.10.8
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

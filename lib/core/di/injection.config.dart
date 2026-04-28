@@ -52,13 +52,14 @@ extension GetItInjectableX on _i174.GetIt {
           gh<_i717.SupabaseTaskDataSource>(),
           gh<_i633.LocalDatabase>(),
         ));
+    gh.factory<_i141.AuthBloc>(
+        () => _i141.AuthBloc(gh<_i1073.AuthRepository>()));
     gh.singleton<_i183.SyncService>(() => _i183.SyncService(
           gh<_i250.TaskRepository>(),
           gh<_i717.SupabaseTaskDataSource>(),
           gh<_i454.SupabaseClient>(),
+          gh<_i633.LocalDatabase>(),
         ));
-    gh.factory<_i141.AuthBloc>(
-        () => _i141.AuthBloc(gh<_i1073.AuthRepository>()));
     gh.factory<_i209.CreateTaskUseCase>(
         () => _i209.CreateTaskUseCase(gh<_i250.TaskRepository>()));
     gh.factory<_i209.UpdateTaskUseCase>(

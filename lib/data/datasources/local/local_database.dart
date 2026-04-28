@@ -137,6 +137,10 @@ class LocalDatabase extends _$LocalDatabase {
         .write(const TasksTableCompanion(isSynced: Value(true)));
   }
 
+  Future<void> deleteTaskById(String taskId) async {
+    await (delete(tasksTable)..where((t) => t.id.equals(taskId))).go();
+  }
+
   // ── Category Queries ──────────────────────────────────────────────────────
 
   Stream<List<CategoriesTableData>> watchCategoriesByUser(String userId) {

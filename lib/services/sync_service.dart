@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/constants/app_constants.dart';
 import '../domain/entities/task.dart';
 import '../domain/repositories/task_repository.dart';
+import '../data/datasources/local/local_database.dart';
 import '../data/datasources/remote/supabase_task_datasource.dart';
 
 /// Orchestrates offline-first sync between local SQLite (Drift)
@@ -21,13 +22,14 @@ class SyncService {
   final TaskRepository _taskRepository;
   final SupabaseTaskDataSource _remote;
   final SupabaseClient _supabase;
+  final LocalDatabase _local;
 
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   RealtimeChannel? _tasksChannel;
   bool _isOnline = true;
   String? _currentUserId;
 
-  SyncService(this._taskRepository, this._remote, this._supabase);
+  SyncService(this._taskRepository, this._remote, this._supabase, this._local);
 
   // ── Initialization ─────────────────────────────────────────────────────────
 
@@ -76,11 +78,11 @@ class SyncService {
   }
 
   void _onRealtimeChange(PostgresChangePayload payload) {
-    // On DELETE from another device: propagate to local DB
+    // On DELETE from another device: remove from local DB directly
     if (payload.eventType == PostgresChangeEvent.delete) {
       final taskId = payload.oldRecord['id'] as String?;
       if (taskId != null) {
-        _taskRepository.deleteTask(taskId);
+        _local.deleteTaskById(taskId);
       }
       return;
     }

@@ -78,6 +78,42 @@ class _EventFormPageState extends State<EventFormPage> {
             ? (isBirthday ? 'Edit Birthday' : 'Edit Event')
             : (isBirthday ? 'New Birthday' : 'New Event')),
         actions: [
+          if (isEditing)
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: 'Delete',
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Delete Event'),
+                    content: Text('Delete "${_existing!.title}"?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Cancel'),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        style: FilledButton.styleFrom(
+                            backgroundColor: Colors.red),
+                        child: const Text('Delete'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm == true && mounted) {
+                  final authState = context.read<AuthBloc>().state;
+                  final userId = authState is AuthAuthenticated
+                      ? authState.user.id
+                      : '';
+                  context.read<CalendarEventBloc>().add(
+                        CalendarEventDeleted(_existing!.id, userId),
+                      );
+                  context.go('/calendar');
+                }
+              },
+            ),
           TextButton(
             onPressed: _submit,
             child: const Text('Save'),

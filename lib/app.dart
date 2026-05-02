@@ -6,6 +6,7 @@ import 'config/router.dart';
 import 'config/theme.dart';
 import 'core/di/injection.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
+import 'presentation/blocs/calendar_event/cal_event_bloc.dart';
 import 'presentation/blocs/task/task_bloc.dart';
 import 'presentation/blocs/calendar/calendar_bloc.dart';
 import 'presentation/blocs/theme/theme_cubit.dart';
@@ -41,6 +42,7 @@ class _SmartTaskPlannerAppState extends State<SmartTaskPlannerApp> {
         BlocProvider.value(value: _authBloc),
         BlocProvider(create: (_) => getIt<TaskBloc>()),
         BlocProvider(create: (_) => getIt<CalendarBloc>()),
+        BlocProvider(create: (_) => getIt<CalendarEventBloc>()),
         BlocProvider(create: (_) => getIt<ThemeCubit>()),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(

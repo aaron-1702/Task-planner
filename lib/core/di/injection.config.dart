@@ -14,14 +14,18 @@ import 'package:injectable/injectable.dart' as _i526;
 import 'package:supabase_flutter/supabase_flutter.dart' as _i454;
 
 import '../../data/datasources/local/local_database.dart' as _i633;
+import '../../data/datasources/remote/supabase_calendar_event_datasource.dart'
+    as _i14;
 import '../../data/datasources/remote/supabase_task_datasource.dart' as _i717;
 import '../../data/repositories/auth_repository_impl.dart' as _i895;
+import '../../data/repositories/calendar_event_repository.dart' as _i56;
 import '../../data/repositories/task_repository_impl.dart' as _i337;
 import '../../domain/repositories/auth_repository.dart' as _i1073;
 import '../../domain/repositories/task_repository.dart' as _i250;
 import '../../domain/usecases/task_usecases.dart' as _i209;
 import '../../presentation/blocs/auth/auth_bloc.dart' as _i141;
 import '../../presentation/blocs/calendar/calendar_bloc.dart' as _i1073;
+import '../../presentation/blocs/calendar_event/cal_event_bloc.dart' as _i578;
 import '../../presentation/blocs/task/task_bloc.dart' as _i812;
 import '../../presentation/blocs/theme/theme_cubit.dart' as _i473;
 import '../../services/notification_service.dart' as _i85;
@@ -48,12 +52,23 @@ extension GetItInjectableX on _i174.GetIt {
         () => _i895.AuthRepositoryImpl(gh<_i454.SupabaseClient>()));
     gh.factory<_i717.SupabaseTaskDataSource>(
         () => _i717.SupabaseTaskDataSource(gh<_i454.SupabaseClient>()));
+    gh.singleton<_i14.SupabaseCalendarEventDatasource>(
+        () => _i14.SupabaseCalendarEventDatasource(gh<_i454.SupabaseClient>()));
     gh.factory<_i250.TaskRepository>(() => _i337.TaskRepositoryImpl(
           gh<_i717.SupabaseTaskDataSource>(),
           gh<_i633.LocalDatabase>(),
         ));
+    gh.singleton<_i56.CalendarEventRepository>(
+        () => _i56.CalendarEventRepository(
+              gh<_i633.LocalDatabase>(),
+              gh<_i14.SupabaseCalendarEventDatasource>(),
+            ));
     gh.factory<_i141.AuthBloc>(
         () => _i141.AuthBloc(gh<_i1073.AuthRepository>()));
+    gh.factory<_i578.CalendarEventBloc>(() => _i578.CalendarEventBloc(
+          gh<_i56.CalendarEventRepository>(),
+          gh<_i85.NotificationService>(),
+        ));
     gh.singleton<_i183.SyncService>(() => _i183.SyncService(
           gh<_i250.TaskRepository>(),
           gh<_i717.SupabaseTaskDataSource>(),

@@ -6,6 +6,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz;
 
 import '../core/constants/app_constants.dart';
+import '../domain/entities/calendar_event.dart';
 import '../domain/entities/task.dart';
 
 /// Manages local (flutter_local_notifications) and
@@ -119,6 +120,57 @@ class NotificationService {
 
   Future<void> cancelAllReminders() async {
     await _localNotifications.cancelAll();
+  }
+
+  // ── Calendar Event Reminders ───────────────────────────────────────────────
+
+  /// Schedules a reminder for a [CalendarEvent] based on its [reminderMinutes].
+  Future<void> scheduleEventReminder(CalendarEvent event) async {
+    final minutes = event.reminderMinutes;
+    if (minutes == null) return;
+
+    final scheduledTime =
+        event.startDate.subtract(Duration(minutes: minutes));
+    if (scheduledTime.isBefore(DateTime.now())) return;
+
+    final isBirthday = event.type == CalendarEventType.birthday;
+    final notificationId = ('ev_${event.id}').hashCode;
+
+    await _localNotifications.zonedSchedule(
+      notificationId,
+      isBirthday
+          ? '🎂 Birthday: ${event.title}'
+          : '📅 Event soon: ${event.title}',
+      minutes == 0
+          ? 'Starting now'
+          : 'In $minutes minutes',
+      tz.TZDateTime.from(scheduledTime, tz.local),
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          AppConstants.notificationChannelId,
+          AppConstants.notificationChannelName,
+          channelDescription: AppConstants.notificationChannelDesc,
+          importance: Importance.high,
+          priority: Priority.high,
+          color: isBirthday
+              ? const Color(0xFFEC4899)
+              : const Color(0xFF14B8A6),
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.wallClockTime,
+      payload: event.id,
+    );
+  }
+
+  Future<void> cancelEventReminder(String eventId) async {
+    await _localNotifications.cancel(('ev_$eventId').hashCode);
   }
 
   // ── Immediate Notifications ────────────────────────────────────────────────

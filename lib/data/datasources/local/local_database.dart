@@ -47,6 +47,26 @@ class CategoriesTable extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+class CalendarEventsTable extends Table {
+  TextColumn get id => text()();
+  TextColumn get userId => text()();
+  TextColumn get title => text()();
+  TextColumn get description => text().nullable()();
+  DateTimeColumn get startDate => dateTime()();
+  DateTimeColumn get endDate => dateTime().nullable()();
+  TextColumn get type => text().withDefault(const Constant('event'))();
+  TextColumn get recurrence => text().withDefault(const Constant('none'))();
+  IntColumn get reminderMinutes => integer().nullable()();
+  IntColumn get birthYear => integer().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+  BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 class UserProfilesTable extends Table {
   TextColumn get id => text()();
   TextColumn get email => text()();
@@ -61,13 +81,13 @@ class UserProfilesTable extends Table {
 
 // ─── Database ─────────────────────────────────────────────────────────────────
 
-@DriftDatabase(tables: [TasksTable, CategoriesTable, UserProfilesTable])
+@DriftDatabase(tables: [TasksTable, CategoriesTable, UserProfilesTable, CalendarEventsTable])
 @singleton
 class LocalDatabase extends _$LocalDatabase {
   LocalDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -75,6 +95,9 @@ class LocalDatabase extends _$LocalDatabase {
         onUpgrade: (m, from, to) async {
           if (from < 2) {
             await m.addColumn(tasksTable, tasksTable.subtasks);
+          }
+          if (from < 3) {
+            await m.createTable(calendarEventsTable);
           }
         },
       );
@@ -142,6 +165,44 @@ class LocalDatabase extends _$LocalDatabase {
 
   Future<void> deleteTaskById(String taskId) async {
     await (delete(tasksTable)..where((t) => t.id.equals(taskId))).go();
+  }
+
+  // ── CalendarEvent Queries ─────────────────────────────────────────────────
+
+  Stream<List<CalendarEventsTableData>> watchEventsByUser(String userId) {
+    return (select(calendarEventsTable)
+          ..where((e) => Expression.and(
+              [e.userId.equals(userId), e.isDeleted.equals(false)]))
+          ..orderBy([(e) => OrderingTerm.asc(e.startDate)]))
+        .watch();
+  }
+
+  Future<void> upsertEvent(CalendarEventsTableData event) async {
+    await into(calendarEventsTable).insertOnConflictUpdate(event);
+  }
+
+  Future<void> upsertEvents(List<CalendarEventsTableData> events) async {
+    await batch((b) {
+      b.insertAllOnConflictUpdate(calendarEventsTable, events);
+    });
+  }
+
+  Future<void> deleteEventById(String eventId) async {
+    await (delete(calendarEventsTable)
+          ..where((e) => e.id.equals(eventId)))
+        .go();
+  }
+
+  Future<List<CalendarEventsTableData>> getUnsyncedEvents() {
+    return (select(calendarEventsTable)
+          ..where((e) => e.isSynced.equals(false)))
+        .get();
+  }
+
+  Future<void> markEventSynced(String eventId) async {
+    await (update(calendarEventsTable)
+          ..where((e) => e.id.equals(eventId)))
+        .write(const CalendarEventsTableCompanion(isSynced: Value(true)));
   }
 
   // ── Category Queries ──────────────────────────────────────────────────────

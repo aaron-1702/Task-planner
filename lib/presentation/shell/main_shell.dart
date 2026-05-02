@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../blocs/auth/auth_bloc.dart';
+import '../blocs/calendar_event/cal_event_bloc.dart';
 import '../blocs/task/task_bloc.dart';
 import '../../core/di/injection.dart';
 import '../../services/sync_service.dart';
@@ -42,6 +43,9 @@ class _MainShellState extends State<MainShell> {
       if (authState is AuthAuthenticated) {
         context.read<TaskBloc>().add(
               TaskSubscriptionRequested(authState.user.id),
+            );
+        context.read<CalendarEventBloc>().add(
+              CalendarEventSubscriptionRequested(authState.user.id),
             );
         getIt<SyncService>().start(authState.user.id);
       }

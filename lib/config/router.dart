@@ -11,6 +11,8 @@ import '../presentation/pages/tasks/task_list_page.dart';
 import '../presentation/pages/tasks/task_detail_page.dart';
 import '../presentation/pages/tasks/task_form_page.dart';
 import '../presentation/pages/calendar/calendar_page.dart';
+import '../presentation/pages/calendar/event_form_page.dart';
+import '../domain/entities/calendar_event.dart';
 import '../presentation/pages/settings/settings_page.dart';
 import '../presentation/pages/stats/stats_page.dart';
 import '../presentation/shell/main_shell.dart';
@@ -107,6 +109,27 @@ class AppRouter {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => TaskFormPage(
           taskId: state.pathParameters['id'],
+        ),
+      ),
+      GoRoute(
+        path: '/event-form',
+        name: 'event-new',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => EventFormPage(
+          initialDate: state.uri.queryParameters['date'] != null
+              ? DateTime.parse(state.uri.queryParameters['date']!)
+              : null,
+          initialType: state.uri.queryParameters['type'] == 'birthday'
+              ? CalendarEventType.birthday
+              : CalendarEventType.event,
+        ),
+      ),
+      GoRoute(
+        path: '/event-edit/:id',
+        name: 'event-edit',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => EventFormPage(
+          eventId: state.pathParameters['id'],
         ),
       ),
     ],

@@ -15,6 +15,7 @@ import '../presentation/pages/calendar/event_form_page.dart';
 import '../domain/entities/calendar_event.dart';
 import '../presentation/pages/settings/settings_page.dart';
 import '../presentation/pages/stats/stats_page.dart';
+import '../presentation/pages/worklog/worklog_page.dart';
 import '../presentation/shell/main_shell.dart';
 
 class AppRouter {
@@ -88,6 +89,11 @@ class AppRouter {
             path: '/settings',
             name: 'settings',
             builder: (context, state) => const SettingsPage(),
+          ),
+          GoRoute(
+            path: '/worklog',
+            name: 'worklog',
+            builder: (context, state) => const WorklogPage(),
           ),
         ],
       ),

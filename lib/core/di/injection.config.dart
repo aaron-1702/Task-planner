@@ -17,17 +17,23 @@ import '../../data/datasources/local/local_database.dart' as _i633;
 import '../../data/datasources/remote/supabase_calendar_event_datasource.dart'
     as _i14;
 import '../../data/datasources/remote/supabase_task_datasource.dart' as _i717;
+import '../../data/datasources/remote/supabase_work_entry_datasource.dart'
+    as _i730;
 import '../../data/repositories/auth_repository_impl.dart' as _i895;
 import '../../data/repositories/calendar_event_repository.dart' as _i56;
 import '../../data/repositories/task_repository_impl.dart' as _i337;
+import '../../data/repositories/work_entry_repository_impl.dart' as _i742;
 import '../../domain/repositories/auth_repository.dart' as _i1073;
 import '../../domain/repositories/task_repository.dart' as _i250;
+import '../../domain/repositories/work_entry_repository.dart' as _i313;
 import '../../domain/usecases/task_usecases.dart' as _i209;
+import '../../domain/usecases/work_entry_usecases.dart' as _i299;
 import '../../presentation/blocs/auth/auth_bloc.dart' as _i141;
 import '../../presentation/blocs/calendar/calendar_bloc.dart' as _i1073;
 import '../../presentation/blocs/calendar_event/cal_event_bloc.dart' as _i578;
 import '../../presentation/blocs/task/task_bloc.dart' as _i812;
 import '../../presentation/blocs/theme/theme_cubit.dart' as _i473;
+import '../../presentation/blocs/worklog/worklog_bloc.dart' as _i395;
 import '../../services/notification_service.dart' as _i85;
 import '../../services/sync_service.dart' as _i183;
 import 'injection.dart' as _i464;
@@ -52,8 +58,14 @@ extension GetItInjectableX on _i174.GetIt {
         () => _i895.AuthRepositoryImpl(gh<_i454.SupabaseClient>()));
     gh.factory<_i717.SupabaseTaskDataSource>(
         () => _i717.SupabaseTaskDataSource(gh<_i454.SupabaseClient>()));
+    gh.factory<_i730.SupabaseWorkEntryDatasource>(
+        () => _i730.SupabaseWorkEntryDatasource(gh<_i454.SupabaseClient>()));
     gh.singleton<_i14.SupabaseCalendarEventDatasource>(
         () => _i14.SupabaseCalendarEventDatasource(gh<_i454.SupabaseClient>()));
+    gh.factory<_i313.WorkEntryRepository>(() => _i742.WorkEntryRepositoryImpl(
+          gh<_i633.LocalDatabase>(),
+          gh<_i730.SupabaseWorkEntryDatasource>(),
+        ));
     gh.factory<_i250.TaskRepository>(() => _i337.TaskRepositoryImpl(
           gh<_i717.SupabaseTaskDataSource>(),
           gh<_i633.LocalDatabase>(),
@@ -63,6 +75,18 @@ extension GetItInjectableX on _i174.GetIt {
               gh<_i633.LocalDatabase>(),
               gh<_i14.SupabaseCalendarEventDatasource>(),
             ));
+    gh.factory<_i299.WatchWorkEntriesUseCase>(
+        () => _i299.WatchWorkEntriesUseCase(gh<_i313.WorkEntryRepository>()));
+    gh.factory<_i299.WatchWorkEntriesInRangeUseCase>(() =>
+        _i299.WatchWorkEntriesInRangeUseCase(gh<_i313.WorkEntryRepository>()));
+    gh.factory<_i299.CreateWorkEntryUseCase>(
+        () => _i299.CreateWorkEntryUseCase(gh<_i313.WorkEntryRepository>()));
+    gh.factory<_i299.UpdateWorkEntryUseCase>(
+        () => _i299.UpdateWorkEntryUseCase(gh<_i313.WorkEntryRepository>()));
+    gh.factory<_i299.DeleteWorkEntryUseCase>(
+        () => _i299.DeleteWorkEntryUseCase(gh<_i313.WorkEntryRepository>()));
+    gh.factory<_i299.SyncWorkEntriesUseCase>(
+        () => _i299.SyncWorkEntriesUseCase(gh<_i313.WorkEntryRepository>()));
     gh.factory<_i141.AuthBloc>(
         () => _i141.AuthBloc(gh<_i1073.AuthRepository>()));
     gh.factory<_i578.CalendarEventBloc>(() => _i578.CalendarEventBloc(
@@ -97,6 +121,13 @@ extension GetItInjectableX on _i174.GetIt {
           gh<_i209.DeleteTaskUseCase>(),
           gh<_i209.GetTasksUseCase>(),
           gh<_i209.WatchTasksUseCase>(),
+        ));
+    gh.factory<_i395.WorklogBloc>(() => _i395.WorklogBloc(
+          gh<_i299.WatchWorkEntriesUseCase>(),
+          gh<_i299.CreateWorkEntryUseCase>(),
+          gh<_i299.UpdateWorkEntryUseCase>(),
+          gh<_i299.DeleteWorkEntryUseCase>(),
+          gh<_i299.SyncWorkEntriesUseCase>(),
         ));
     return this;
   }

@@ -27,6 +27,7 @@ class _MainShellState extends State<MainShell> {
     (label: 'Dashboard', icon: Icons.dashboard_outlined, route: '/dashboard'),
     (label: 'Tasks', icon: Icons.task_alt_outlined, route: '/tasks'),
     (label: 'Calendar', icon: Icons.calendar_month_outlined, route: '/calendar'),
+    (label: 'Work Log', icon: Icons.access_time_outlined, route: '/worklog'),
     (label: 'Stats', icon: Icons.bar_chart_outlined, route: '/stats'),
     (label: 'Settings', icon: Icons.settings_outlined, route: '/settings'),
   ];

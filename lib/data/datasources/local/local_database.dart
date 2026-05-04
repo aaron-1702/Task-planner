@@ -79,15 +79,34 @@ class UserProfilesTable extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+class WorkEntriesTable extends Table {
+  TextColumn get id => text()();
+  TextColumn get userId => text()();
+  DateTimeColumn get date => dateTime()();
+  DateTimeColumn get startTime => dateTime()();
+  DateTimeColumn get endTime => dateTime()();
+  IntColumn get breakMinutes => integer().withDefault(const Constant(0))();
+  TextColumn get note => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+  BoolColumn get isDeleted =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get isSynced =>
+      boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ─── Database ─────────────────────────────────────────────────────────────────
 
-@DriftDatabase(tables: [TasksTable, CategoriesTable, UserProfilesTable, CalendarEventsTable])
+@DriftDatabase(tables: [TasksTable, CategoriesTable, UserProfilesTable, CalendarEventsTable, WorkEntriesTable])
 @singleton
 class LocalDatabase extends _$LocalDatabase {
   LocalDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -98,6 +117,9 @@ class LocalDatabase extends _$LocalDatabase {
           }
           if (from < 3) {
             await m.createTable(calendarEventsTable);
+          }
+          if (from < 4) {
+            await m.createTable(workEntriesTable);
           }
         },
       );
@@ -216,5 +238,54 @@ class LocalDatabase extends _$LocalDatabase {
 
   Future<void> upsertCategory(CategoriesTableData category) async {
     await into(categoriesTable).insertOnConflictUpdate(category);
+  }
+
+  // ── WorkEntry Queries ─────────────────────────────────────────────────────
+
+  Stream<List<WorkEntriesTableData>> watchWorkEntriesByUser(String userId) {
+    return (select(workEntriesTable)
+          ..where((e) => Expression.and(
+              [e.userId.equals(userId), e.isDeleted.equals(false)]))
+          ..orderBy([(e) => OrderingTerm.desc(e.date)]))
+        .watch();
+  }
+
+  Stream<List<WorkEntriesTableData>> watchWorkEntriesInRange(
+      String userId, DateTime start, DateTime end) {
+    return (select(workEntriesTable)
+          ..where((e) => Expression.and(
+              [e.userId.equals(userId), e.isDeleted.equals(false)]))
+          ..orderBy([(e) => OrderingTerm.desc(e.date)]))
+        .watch()
+        .map((rows) => rows
+            .where((e) =>
+                !e.date.isBefore(start) && !e.date.isAfter(end))
+            .toList());
+  }
+
+  Future<void> upsertWorkEntry(WorkEntriesTableData entry) async {
+    await into(workEntriesTable).insertOnConflictUpdate(entry);
+  }
+
+  Future<void> upsertWorkEntries(List<WorkEntriesTableData> entries) async {
+    await batch((b) {
+      b.insertAllOnConflictUpdate(workEntriesTable, entries);
+    });
+  }
+
+  Future<void> markWorkEntrySynced(String entryId) async {
+    await (update(workEntriesTable)
+          ..where((e) => e.id.equals(entryId)))
+        .write(const WorkEntriesTableCompanion(isSynced: Value(true)));
+  }
+
+  Future<void> deleteWorkEntryById(String entryId) async {
+    await (delete(workEntriesTable)..where((e) => e.id.equals(entryId))).go();
+  }
+
+  Future<List<WorkEntriesTableData>> getUnsyncedWorkEntries() {
+    return (select(workEntriesTable)
+          ..where((e) => e.isSynced.equals(false)))
+        .get();
   }
 }

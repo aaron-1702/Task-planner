@@ -29,8 +29,13 @@ class WorklogState extends Equatable {
   List<WorkEntry> get periodEntries {
     final range = _periodRange;
     return allEntries
-        .where((e) =>
-            !e.date.isBefore(range.$1) && !e.date.isAfter(range.$2))
+        .where((e) {
+          // Normalize e.date to local date-only so UTC vs local DateTimes
+          // (Drift returns UTC) don't cause off-by-one-day mismatches.
+          final local = e.date.toLocal();
+          final entryDay = DateTime(local.year, local.month, local.day);
+          return !entryDay.isBefore(range.$1) && !entryDay.isAfter(range.$2);
+        })
         .toList()
       ..sort((a, b) => b.startTime.compareTo(a.startTime));
   }

@@ -77,7 +77,7 @@ class _WorklogView extends StatelessWidget {
   void _showExportDialog(BuildContext context, String csv) {
     showDialog<void>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('CSV Export'),
         content: SingleChildScrollView(
           child: SelectableText(
@@ -87,7 +87,7 @@ class _WorklogView extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Close'),
           ),
         ],
@@ -498,15 +498,15 @@ class _EntryTile extends StatelessWidget {
     if (auth is! AuthAuthenticated) return;
     final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete entry?'),
         content: const Text('This action cannot be undone.'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => Navigator.pop(dialogContext, false),
               child: const Text('Cancel')),
           FilledButton(
-              onPressed: () => Navigator.pop(context, true),
+              onPressed: () => Navigator.pop(dialogContext, true),
               child: const Text('Delete')),
         ],
       ),

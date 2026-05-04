@@ -28,17 +28,17 @@ class WorklogState extends Equatable {
   /// Entries visible in the current period window.
   List<WorkEntry> get periodEntries {
     final range = _periodRange;
+    final startInt = _ymd(range.$1);
+    final endInt   = _ymd(range.$2);
     return allEntries
-        .where((e) {
-          // Normalize e.date to local date-only so UTC vs local DateTimes
-          // (Drift returns UTC) don't cause off-by-one-day mismatches.
-          final local = e.date.toLocal();
-          final entryDay = DateTime(local.year, local.month, local.day);
-          return !entryDay.isBefore(range.$1) && !entryDay.isAfter(range.$2);
-        })
+        .where((e) => _ymd(e.date.toLocal()) >= startInt &&
+                      _ymd(e.date.toLocal()) <= endInt)
         .toList()
       ..sort((a, b) => b.startTime.compareTo(a.startTime));
   }
+
+  /// Integer representation YYYYMMDD for reliable date-only comparison.
+  static int _ymd(DateTime d) => d.year * 10000 + d.month * 100 + d.day;
 
   /// Total net working time for the current period.
   Duration get periodTotalWork => periodEntries.fold(

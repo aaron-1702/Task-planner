@@ -126,8 +126,10 @@ class WorklogBloc extends Bloc<WorklogEvent, WorklogState> {
       WorklogTimerStopped event, Emitter<WorklogState> emit) async {
     if (!state.timerRunning || state.timerStartedAt == null) return;
 
-    final start = state.timerStartedAt!;
+    final startUtc = state.timerStartedAt!;
     final end = DateTime.now().toUtc();
+    // Convert start to LOCAL to extract the correct calendar date
+    final startLocal = startUtc.toLocal();
 
     emit(state.copyWith(
       timerRunning: false,
@@ -137,8 +139,8 @@ class WorklogBloc extends Bloc<WorklogEvent, WorklogState> {
     // Persist as a new entry
     add(WorklogEntrySaved(
       userId: event.userId,
-      date: DateTime(start.year, start.month, start.day),
-      startTime: start,
+      date: DateTime(startLocal.year, startLocal.month, startLocal.day),
+      startTime: startUtc,
       endTime: end,
       breakMinutes: event.breakMinutes,
       note: event.note,

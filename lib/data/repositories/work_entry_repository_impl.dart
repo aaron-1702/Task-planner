@@ -117,6 +117,19 @@ class WorkEntryRepositoryImpl implements WorkEntryRepository {
       await _local.upsertWorkEntries(
           remoteEntries.map((e) => _toRow(e, synced: true)).toList());
 
+      // Remove local entries that no longer exist on the remote.
+      // This handles deletes from other devices when the Realtime event was
+      // missed (e.g. device was offline, or REPLICA IDENTITY was not FULL).
+      // Only removes entries that are already synced — never touches pending
+      // offline changes (isSynced=false) to avoid data loss.
+      final remoteIds = remoteEntries.map((e) => e.id).toSet();
+      final localRows = await _local.watchWorkEntriesByUser(userId).first;
+      for (final row in localRows) {
+        if (row.isSynced && !row.isDeleted && !remoteIds.contains(row.id)) {
+          await _local.deleteWorkEntryById(row.id);
+        }
+      }
+
       return const Right(unit);
     } catch (e) {
       return Left(ServerFailure(e.toString()));

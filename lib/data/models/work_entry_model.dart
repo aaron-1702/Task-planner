@@ -43,7 +43,12 @@ class WorkEntryModel extends WorkEntry {
   Map<String, dynamic> toJson() => {
         'id': id,
         'user_id': userId,
-        'date': date.toUtc().toIso8601String(),
+        // Store date as ISO date-only string — NO UTC conversion.
+        // date.toUtc() would shift the day for non-UTC timezones,
+        // causing Supabase's DATE column to store the wrong day.
+        'date': '${date.year}-'
+            '${date.month.toString().padLeft(2, '0')}-'
+            '${date.day.toString().padLeft(2, '0')}',
         'start_time': startTime.toUtc().toIso8601String(),
         'end_time': endTime.toUtc().toIso8601String(),
         'break_minutes': breakMinutes,

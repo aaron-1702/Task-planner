@@ -95,6 +95,7 @@ extension GetItInjectableX on _i174.GetIt {
         ));
     gh.singleton<_i183.SyncService>(() => _i183.SyncService(
           gh<_i250.TaskRepository>(),
+          gh<_i313.WorkEntryRepository>(),
           gh<_i717.SupabaseTaskDataSource>(),
           gh<_i454.SupabaseClient>(),
           gh<_i633.LocalDatabase>(),

@@ -5,8 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/constants/app_constants.dart';
-import '../domain/entities/task.dart';
 import '../domain/repositories/task_repository.dart';
+import '../domain/repositories/work_entry_repository.dart';
 import '../data/datasources/local/local_database.dart';
 import '../data/datasources/remote/supabase_task_datasource.dart';
 
@@ -20,16 +20,24 @@ import '../data/datasources/remote/supabase_task_datasource.dart';
 @singleton
 class SyncService {
   final TaskRepository _taskRepository;
+  final WorkEntryRepository _workEntryRepository;
   final SupabaseTaskDataSource _remote;
   final SupabaseClient _supabase;
   final LocalDatabase _local;
 
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   RealtimeChannel? _tasksChannel;
+  RealtimeChannel? _workEntriesChannel;
   bool _isOnline = true;
   String? _currentUserId;
 
-  SyncService(this._taskRepository, this._remote, this._supabase, this._local);
+  SyncService(
+    this._taskRepository,
+    this._workEntryRepository,
+    this._remote,
+    this._supabase,
+    this._local,
+  );
 
   // ── Initialization ─────────────────────────────────────────────────────────
 
@@ -42,17 +50,21 @@ class SyncService {
         .onConnectivityChanged
         .listen(_onConnectivityChanged);
 
-    // Supabase Realtime subscription
+    // Supabase Realtime subscriptions
     _subscribeToRealtime(userId);
 
     // Always do a full pull on startup to catch tasks from other devices
     await _performFullSync(userId);
+    // Pull work entries from all devices
+    await _workEntryRepository.syncFromRemote(userId);
   }
 
   Future<void> stop() async {
     _connectivitySub?.cancel();
     _tasksChannel?.unsubscribe();
+    _workEntriesChannel?.unsubscribe();
     _tasksChannel = null;
+    _workEntriesChannel = null;
     _currentUserId = null;
   }
 
@@ -60,6 +72,7 @@ class SyncService {
 
   void _subscribeToRealtime(String userId) {
     _tasksChannel?.unsubscribe();
+    _workEntriesChannel?.unsubscribe();
 
     _tasksChannel = _supabase
         .channel(AppConstants.tasksChannel)
@@ -73,6 +86,21 @@ class SyncService {
             value: userId,
           ),
           callback: (payload) => _onRealtimeChange(payload),
+        )
+        .subscribe();
+
+    _workEntriesChannel = _supabase
+        .channel(AppConstants.workEntriesChannel)
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: AppConstants.workEntriesTable,
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: userId,
+          ),
+          callback: (payload) => _onWorkEntryRealtimeChange(payload),
         )
         .subscribe();
   }
@@ -89,6 +117,19 @@ class SyncService {
     // For INSERT/UPDATE: pull remote changes
     if (_currentUserId != null) {
       _performSync(_currentUserId!);
+    }
+  }
+
+  void _onWorkEntryRealtimeChange(PostgresChangePayload payload) {
+    if (payload.eventType == PostgresChangeEvent.delete) {
+      final entryId = payload.oldRecord['id'] as String?;
+      if (entryId != null) {
+        _local.deleteWorkEntryById(entryId);
+      }
+      return;
+    }
+    if (_currentUserId != null) {
+      _workEntryRepository.syncFromRemote(_currentUserId!);
     }
   }
 

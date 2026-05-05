@@ -155,7 +155,11 @@ class StatsPage extends StatelessWidget {
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
+                        interval: 1,
                         getTitlesWidget: (value, meta) {
+                          if (value != value.roundToDouble()) {
+                            return const SizedBox.shrink();
+                          }
                           final day = now
                               .subtract(Duration(days: 6 - value.toInt()));
                           return Padding(

@@ -5,9 +5,15 @@ title Smart Task Planner
 set "FLUTTER_BIN=%USERPROFILE%\flutter\bin"
 set "APP_DIR=C:\Users\aaron\Desktop\Apps\smart_task_planner"
 
-REM ── Supabase Keys hier eintragen ─────────────────────────────────────────────
-set "SUPABASE_URL=https://pcsngbgxkristsqexgkw.supabase.co"
-set "SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjc25nYmd4a3Jpc3RzcWV4Z2t3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczODIyMTMsImV4cCI6MjA5Mjk1ODIxM30.UBwpVsI_1xWVE5xcfwY7wXWWvd3PuMa9x4EYz8c9oZY"
+REM ── Supabase Keys aus .env laden ─────────────────────────────────────────────
+if not exist "%APP_DIR%\.env" (
+    echo FEHLER: .env Datei nicht gefunden! Bitte .env.example kopieren und ausfuellen.
+    pause
+    exit /b 1
+)
+for /f "usebackq tokens=1,* delims==" %%A in ("%APP_DIR%\.env") do (
+    if not "%%A"=="" if not "%%A:~0,1%"=="#" set "%%A=%%B"
+)
 set "BUILD_DIR=%APP_DIR%\build\web"
 set "PORT=8080"
 

@@ -22,6 +22,8 @@ $env:PATH += ";$FLUTTER_BIN"
 # ── Beim ersten Start: App bauen ─────────────────────────────────────────────
 if (-not (Test-Path "$BUILD_DIR\index.html")) {
     Set-Location $APP_DIR
+    & dart run flutter_launcher_icons | Out-Null
+    if ($LASTEXITCODE -ne 0) { exit 1 }
     & flutter build web --release `
         "--dart-define=SUPABASE_URL=$SUPABASE_URL" `
         "--dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" | Out-Null
@@ -71,18 +73,38 @@ if (-not $chrome) {
     exit
 }
 
-# ── Profil-Cache leeren wenn neuer Build erkannt ─────────────────────────────
-# Build-ID = Hash der main.dart.js (ändert sich bei jedem neuen Build)
-$mainJs = "$BUILD_DIR\main.dart.js"
+# ── Profil-Cache leeren wenn neuer Build/Assets erkannt ──────────────────────
+# Build-ID basiert auf main.dart.js + Web-Icons/Manifest, damit Icon-Updates
+# ebenfalls einen Cache-Reset triggern.
 $buildIdFile  = "$PROFILE_DIR\.last_build_id"
-$currentBuildId = if (Test-Path $mainJs) {
-    (Get-FileHash $mainJs -Algorithm MD5).Hash
-} else { "unknown" }
+$buildInputs = @(
+    "$BUILD_DIR\main.dart.js",
+    "$BUILD_DIR\favicon.png",
+    "$BUILD_DIR\manifest.json",
+    "$BUILD_DIR\icons\Icon-192.png",
+    "$BUILD_DIR\icons\Icon-512.png",
+    "$BUILD_DIR\icons\Icon-maskable-192.png",
+    "$BUILD_DIR\icons\Icon-maskable-512.png"
+)
+
+$parts = @()
+foreach ($file in $buildInputs) {
+    if (Test-Path $file) {
+        $parts += (Get-FileHash $file -Algorithm MD5).Hash
+    } else {
+        $parts += "missing:$file"
+    }
+}
+$currentBuildId = ($parts -join '|')
 $cachedBuildId = if (Test-Path $buildIdFile) { Get-Content $buildIdFile -Raw } else { "" }
 
 if ($currentBuildId.Trim() -ne $cachedBuildId.Trim()) {
     # Service-Worker und Cache löschen, Login-Daten bleiben erhalten
     Remove-Item -Recurse -Force "$PROFILE_DIR\Default\Service Worker" -ErrorAction SilentlyContinue
+    Remove-Item -Recurse -Force "$PROFILE_DIR\Default\Web Applications" -ErrorAction SilentlyContinue
+    Remove-Item -Force "$PROFILE_DIR\Default\Favicons" -ErrorAction SilentlyContinue
+    Remove-Item -Force "$PROFILE_DIR\Default\Favicons-journal" -ErrorAction SilentlyContinue
+    Remove-Item -Recurse -Force "$PROFILE_DIR\Default\Shortcuts" -ErrorAction SilentlyContinue
     Remove-Item -Recurse -Force "$PROFILE_DIR\Default\Cache"          -ErrorAction SilentlyContinue
     Remove-Item -Recurse -Force "$PROFILE_DIR\Default\Code Cache"     -ErrorAction SilentlyContinue
     Remove-Item -Recurse -Force "$PROFILE_DIR\Default\GPUCache"       -ErrorAction SilentlyContinue

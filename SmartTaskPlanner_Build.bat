@@ -24,6 +24,16 @@ echo (Bitte warten, das dauert ca. 30-60 Sekunden)
 echo.
 
 cd /d "%APP_DIR%"
+
+echo Aktualisiere App-Icons...
+call dart run flutter_launcher_icons >nul
+if errorlevel 1 (
+    echo.
+    echo FEHLER: Icon-Generierung fehlgeschlagen!
+    pause
+    exit /b 1
+)
+
 call flutter build web --release ^
     --dart-define=SUPABASE_URL=%SUPABASE_URL% ^
     --dart-define=SUPABASE_ANON_KEY=%SUPABASE_ANON_KEY%

@@ -408,6 +408,7 @@ class _EntryList extends StatelessWidget {
     }
 
     final entries = state.periodEntries;
+    final showEntryDate = state.viewMode == WorklogViewMode.month;
 
     if (entries.isEmpty) {
       return Center(
@@ -429,18 +430,22 @@ class _EntryList extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 80),
       itemCount: entries.length,
       separatorBuilder: (_, __) => const SizedBox(height: 4),
-      itemBuilder: (context, i) => _EntryTile(entry: entries[i]),
+      itemBuilder: (context, i) => EntryTile(
+        entry: entries[i],
+        showDate: showEntryDate,
+      ),
     );
   }
 }
 
-class _EntryTile extends StatelessWidget {
+class EntryTile extends StatelessWidget {
   final WorkEntry entry;
-  const _EntryTile({required this.entry});
+  final bool showDate;
+
+  const EntryTile({required this.entry, required this.showDate, super.key});
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.read<AuthBloc>().state;
     final net = entry.workDuration;
     final h = net.inHours;
     final m = net.inMinutes % 60;
@@ -464,6 +469,11 @@ class _EntryTile extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (showDate)
+              Text(
+                DateFormat('dd.MM.yyyy').format(entry.date.toLocal()),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             Text('Net: ${h}h ${m}min'
                 '${entry.breakMinutes > 0 ? '  •  Break: ${entry.breakMinutes} min' : ''}'),
             if (entry.note != null && entry.note!.isNotEmpty)
@@ -485,7 +495,7 @@ class _EntryTile extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.delete_outline),
               tooltip: 'Delete',
-              onPressed: () => _confirmDelete(context, entry, auth),
+              onPressed: () => _confirmDelete(context, entry),
             ),
           ],
         ),
@@ -494,7 +504,8 @@ class _EntryTile extends StatelessWidget {
   }
 
   Future<void> _confirmDelete(
-      BuildContext context, WorkEntry entry, AuthState auth) async {
+      BuildContext context, WorkEntry entry) async {
+    final auth = context.read<AuthBloc>().state;
     if (auth is! AuthAuthenticated) return;
     final ok = await showDialog<bool>(
       context: context,

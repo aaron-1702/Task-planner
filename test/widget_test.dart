@@ -1,30 +1,59 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:smart_task_planner/main.dart';
+import 'package:smart_task_planner/domain/entities/work_entry.dart';
+import 'package:smart_task_planner/presentation/pages/worklog/worklog_page.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('EntryTile shows the entry date in month view', (tester) async {
+    final entry = WorkEntry(
+      id: '1',
+      userId: 'user-1',
+      date: DateTime(2026, 5, 20),
+      startTime: DateTime.utc(2026, 5, 20, 8, 0),
+      endTime: DateTime.utc(2026, 5, 20, 10, 30),
+      breakMinutes: 15,
+      note: 'Planning session',
+      createdAt: DateTime.utc(2026, 5, 20),
+      updatedAt: DateTime.utc(2026, 5, 20),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: EntryTile(
+            entry: entry,
+            showDate: true,
+          ),
+        ),
+      ),
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    expect(find.text('20.05.2026'), findsOneWidget);
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('EntryTile can hide the date outside month view', (tester) async {
+    final entry = WorkEntry(
+      id: '1',
+      userId: 'user-1',
+      date: DateTime(2026, 5, 20),
+      startTime: DateTime.utc(2026, 5, 20, 8, 0),
+      endTime: DateTime.utc(2026, 5, 20, 10, 30),
+      createdAt: DateTime.utc(2026, 5, 20),
+      updatedAt: DateTime.utc(2026, 5, 20),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: EntryTile(
+            entry: entry,
+            showDate: false,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('20.05.2026'), findsNothing);
   });
 }

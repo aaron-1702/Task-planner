@@ -51,7 +51,7 @@ class _LearninglogView extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Learning Log'),
+          title: const Text('Study Timer'),
           actions: [
             IconButton(
               icon: const Icon(Icons.download_outlined),
@@ -302,7 +302,7 @@ class _LearningTimerCardState extends State<LearningTimerCard> {
                 ),
               ),
               subtitle: Text(
-                'Started at ${DateFormat('HH:mm', 'de_DE').format(state.timerStartedAt!.toLocal())}',
+                'Started at ${DateFormat('HH:mm').format(state.timerStartedAt!.toLocal())}',
               ),
               trailing: FilledButton.tonalIcon(
                 icon: const Icon(Icons.stop),
@@ -441,7 +441,7 @@ class _EntryList extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Noch keine Lerneintraege in diesem Zeitraum',
+              'No learning entries in this period',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           ],
@@ -500,12 +500,12 @@ class LearningEntryTile extends StatelessWidget {
           children: [
             if (showDate)
               Text(
-                DateFormat('dd.MM.yyyy', 'de_DE').format(entry.date.toLocal()),
+                DateFormat('dd.MM.yyyy').format(entry.date.toLocal()),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             Text(
               '${_fmtTime(entry.startTime)} - ${_fmtTime(entry.endTime)}  •  Net: ${h}h ${m}min'
-              '${entry.breakMinutes > 0 ? '  •  Pause: ${entry.breakMinutes} min' : ''}',
+              '${entry.breakMinutes > 0 ? '  •  Break: ${entry.breakMinutes} min' : ''}',
             ),
             if (entry.note != null && entry.note!.isNotEmpty)
               Text(
@@ -543,9 +543,8 @@ class LearningEntryTile extends StatelessWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Eintrag loeschen?'),
-        content:
-            const Text('Diese Aktion kann nicht rueckgaengig gemacht werden.'),
+        title: const Text('Delete entry?'),
+        content: const Text('This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
@@ -648,7 +647,7 @@ class _EntryFormSheetState extends State<_EntryFormSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              isEdit ? 'Lerneintrag bearbeiten' : 'Neuer Lerneintrag',
+              isEdit ? 'Edit learning entry' : 'New learning entry',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
@@ -663,7 +662,7 @@ class _EntryFormSheetState extends State<_EntryFormSheet> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.calendar_today_outlined),
-              title: Text(DateFormat('dd.MM.yyyy', 'de_DE').format(_date)),
+              title: Text(DateFormat('dd.MM.yyyy').format(_date)),
               subtitle: const Text('Date'),
               onTap: () async {
                 final d = await showDatePicker(
@@ -746,7 +745,7 @@ class _EntryFormSheetState extends State<_EntryFormSheet> {
     final topic = _topicCtrl.text.trim();
     if (topic.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bitte ein Topic eingeben.')),
+        const SnackBar(content: Text('Please enter a topic.')),
       );
       return;
     }
@@ -768,14 +767,14 @@ class _EntryFormSheetState extends State<_EntryFormSheet> {
 
     if (!endDt.isAfter(startDt)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Endzeit muss nach Startzeit liegen.')),
+        const SnackBar(content: Text('End time must be after start time.')),
       );
       return;
     }
 
     if (_breakMinutes < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pause darf nicht negativ sein.')),
+        const SnackBar(content: Text('Break cannot be negative.')),
       );
       return;
     }
@@ -784,7 +783,7 @@ class _EntryFormSheetState extends State<_EntryFormSheet> {
     if (_breakMinutes > grossMinutes) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Pause darf nicht groesser als die Dauer sein.'),
+          content: Text('Break cannot be longer than the session duration.'),
         ),
       );
       return;
@@ -868,7 +867,7 @@ class _StopTimerDialogState extends State<_StopTimerDialog> {
             final topic = _topicCtrl.text.trim();
             if (topic.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Bitte ein Topic eingeben.')),
+                const SnackBar(content: Text('Please enter a topic.')),
               );
               return;
             }

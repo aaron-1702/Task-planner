@@ -72,14 +72,11 @@ class LearninglogState extends Equatable {
 
   static int _ymd(DateTime d) => d.year * 10000 + d.month * 100 + d.day;
 
-  static String _fmtDate(DateTime d) =>
-      DateFormat('dd.MM.yyyy', 'de_DE').format(d);
+    static String _fmtDate(DateTime d) => DateFormat('dd.MM.yyyy').format(d);
 
-  static String _fmtShort(DateTime d) =>
-      DateFormat('dd.MM.', 'de_DE').format(d);
+    static String _fmtShort(DateTime d) => DateFormat('dd.MM.').format(d);
 
-  static String _fmtMonth(DateTime d) =>
-      DateFormat('MMMM yyyy', 'de_DE').format(d);
+    static String _fmtMonth(DateTime d) => DateFormat('MMMM yyyy').format(d);
 
   LearninglogState copyWith({
     LearninglogStatus? status,

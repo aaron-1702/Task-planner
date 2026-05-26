@@ -33,7 +33,7 @@ class _MainShellState extends State<MainShell> {
     ),
     (label: 'Work Log', icon: Icons.access_time_outlined, route: '/worklog'),
     (
-      label: 'Learning Log',
+      label: 'Study Timer',
       icon: Icons.menu_book_outlined,
       route: '/learninglog'
     ),

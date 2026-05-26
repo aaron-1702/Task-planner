@@ -80,8 +80,10 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width >= 720;
-    final mobileLabelBehavior = MediaQuery.of(context).size.width < 430
+    final width = MediaQuery.of(context).size.width;
+    final isWide = width >= 720;
+    final compactMobileLabels = width < 520;
+    final mobileLabelBehavior = width < 430
         ? NavigationDestinationLabelBehavior.alwaysHide
         : NavigationDestinationLabelBehavior.onlyShowSelected;
 
@@ -166,7 +168,9 @@ class _MainShellState extends State<MainShell> {
                 destinations: _destinations
                     .map((d) => NavigationDestination(
                           icon: Icon(d.icon),
-                          label: d.label,
+                  label: compactMobileLabels && d.route == '/learninglog'
+                    ? 'Study'
+                    : d.label,
                         ))
                     .toList(),
               ),

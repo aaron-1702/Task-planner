@@ -52,15 +52,18 @@ class SupabaseLearningGoalRemoteStore implements LearningGoalRemoteStore {
   ) async {
     final remoteSnapshot = await fetchSnapshot(userId);
     final mergedSnapshot = _mergeSnapshots(remoteSnapshot, localSnapshot);
-    final currentEmail = _client.auth.currentUser?.email;
+    final currentUser = _client.auth.currentUser;
+    final currentEmail = currentUser?.email ??
+        currentUser?.userMetadata?['email']?.toString() ??
+        '';
 
     await _client.from(AppConstants.usersTable).upsert({
       'id': userId,
-      if (currentEmail != null && currentEmail.isNotEmpty) 'email': currentEmail,
+      'email': currentEmail,
       'learning_goal_minutes': _encodeIntMap(mergedSnapshot.goals),
       'learning_goal_updated_at': _encodeDateMap(mergedSnapshot.updatedAtByMonth),
       'updated_at': DateTime.now().toUtc().toIso8601String(),
-    });
+    }, onConflict: 'id');
 
     return mergedSnapshot;
   }

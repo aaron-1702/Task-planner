@@ -22,6 +22,7 @@ class WorkGoalCubit extends Cubit<WorkGoalState> {
   StreamSubscription<List<WorkEntry>>? _entriesSub;
   StreamSubscription<void>? _remoteGoalsSub;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
+  Timer? _pollTimer;
   bool _isOnline = true;
 
   WorkGoalCubit(
@@ -41,6 +42,7 @@ class WorkGoalCubit extends Cubit<WorkGoalState> {
 
     await _entriesSub?.cancel();
     await _remoteGoalsSub?.cancel();
+    _pollTimer?.cancel();
     emit(state.copyWith(
       status: WorkGoalStatus.loading,
       userId: userId,
@@ -60,6 +62,13 @@ class WorkGoalCubit extends Cubit<WorkGoalState> {
       await _flushPendingGoals(userId);
       if (isClosed) return;
       await _refreshGoalsFromServer(userId);
+    });
+
+    _pollTimer = Timer.periodic(const Duration(seconds: 30), (_) async {
+      if (isClosed || !_isOnline || state.userId != userId) return;
+      await _flushPendingGoals(userId);
+      if (isClosed) return;
+      await _refreshGoalsFromServer(userId, emitErrors: false);
     });
 
     _entriesSub = _watchEntries(userId).listen(
@@ -88,6 +97,7 @@ class WorkGoalCubit extends Cubit<WorkGoalState> {
   Future<void> clearUser() async {
     await _entriesSub?.cancel();
     await _remoteGoalsSub?.cancel();
+    _pollTimer?.cancel();
     emit(const WorkGoalState());
   }
 
@@ -333,6 +343,7 @@ class WorkGoalCubit extends Cubit<WorkGoalState> {
     await _entriesSub?.cancel();
     await _remoteGoalsSub?.cancel();
     await _connectivitySub?.cancel();
+    _pollTimer?.cancel();
     await super.close();
   }
 }

@@ -35,22 +35,39 @@ class _LearninglogView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<LearninglogBloc, LearninglogState>(
-      listenWhen: (prev, curr) =>
-          prev.error != curr.error || prev.exportCsv != curr.exportCsv,
-      listener: (context, state) {
-        if (state.error != null && state.error!.isNotEmpty) {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(SnackBar(content: Text(state.error!)));
-        }
-        if (state.exportCsv != null) {
-          _showExportDialog(context, state.exportCsv!);
-          context
-              .read<LearninglogBloc>()
-              .add(const LearninglogExportDismissed());
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<LearninglogBloc, LearninglogState>(
+          listenWhen: (prev, curr) =>
+              prev.error != curr.error || prev.exportCsv != curr.exportCsv,
+          listener: (context, state) {
+            if (state.error != null && state.error!.isNotEmpty) {
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(SnackBar(content: Text(state.error!)));
+            }
+            if (state.exportCsv != null) {
+              _showExportDialog(context, state.exportCsv!);
+              context
+                  .read<LearninglogBloc>()
+                  .add(const LearninglogExportDismissed());
+            }
+          },
+        ),
+        BlocListener<LearningGoalCubit, LearningGoalState>(
+          listenWhen: (prev, curr) => prev.error != curr.error,
+          listener: (context, state) {
+            final error = state.error;
+            if (error == null || error.isEmpty) return;
+
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(content: Text('Goal sync failed: $error')),
+              );
+          },
+        ),
+      ],
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Study Timer'),

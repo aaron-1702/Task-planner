@@ -124,6 +124,7 @@ class WorkGoalCubit extends Cubit<WorkGoalState> {
     emit(state.copyWith(
       goalMinutesByMonth: nextGoals,
       updatedAtByMonth: nextUpdatedAtByMonth,
+      clearError: true,
     ));
 
     await _storePendingSnapshot(

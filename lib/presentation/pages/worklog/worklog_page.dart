@@ -38,14 +38,32 @@ class _WorklogView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<WorklogBloc, WorklogState>(
-      listenWhen: (prev, curr) => curr.exportCsv != null && prev.exportCsv != curr.exportCsv,
-      listener: (context, state) {
-        if (state.exportCsv != null) {
-          _showExportDialog(context, state.exportCsv!);
-          context.read<WorklogBloc>().add(const WorklogExportDismissed());
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<WorklogBloc, WorklogState>(
+          listenWhen: (prev, curr) =>
+              curr.exportCsv != null && prev.exportCsv != curr.exportCsv,
+          listener: (context, state) {
+            if (state.exportCsv != null) {
+              _showExportDialog(context, state.exportCsv!);
+              context.read<WorklogBloc>().add(const WorklogExportDismissed());
+            }
+          },
+        ),
+        BlocListener<WorkGoalCubit, WorkGoalState>(
+          listenWhen: (prev, curr) => prev.error != curr.error,
+          listener: (context, state) {
+            final error = state.error;
+            if (error == null || error.isEmpty) return;
+
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(content: Text('Work goal sync failed: $error')),
+              );
+          },
+        ),
+      ],
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Work Log'),

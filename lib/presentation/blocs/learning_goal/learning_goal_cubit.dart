@@ -125,6 +125,7 @@ class LearningGoalCubit extends Cubit<LearningGoalState> {
     emit(state.copyWith(
       goalMinutesByMonth: nextGoals,
       updatedAtByMonth: nextUpdatedAtByMonth,
+      clearError: true,
     ));
     await _storePendingSnapshot(
       userId,

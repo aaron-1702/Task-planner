@@ -81,6 +81,9 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     final isWide = MediaQuery.of(context).size.width >= 720;
+    final mobileLabelBehavior = MediaQuery.of(context).size.width < 430
+        ? NavigationDestinationLabelBehavior.alwaysHide
+        : NavigationDestinationLabelBehavior.onlyShowSelected;
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
@@ -156,6 +159,8 @@ class _MainShellState extends State<MainShell> {
         bottomNavigationBar: isWide
             ? null
             : NavigationBar(
+            height: 64,
+            labelBehavior: mobileLabelBehavior,
                 selectedIndex: _selectedIndex,
                 onDestinationSelected: _onDestinationSelected,
                 destinations: _destinations

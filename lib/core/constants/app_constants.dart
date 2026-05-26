@@ -18,6 +18,7 @@ class AppConstants {
   static const String tasksChannel = 'tasks_channel';
   static const String workEntriesChannel = 'work_entries_channel';
   static const String learningEntriesChannel = 'learning_entries_channel';
+  static const String userProfilesChannel = 'user_profiles_channel';
 
   // SharedPreferences keys
   static const String themeKey = 'theme_mode';
@@ -25,6 +26,13 @@ class AppConstants {
   static const String lastSyncKey = 'last_sync_at';
   static const String lastWorkEntrySyncKey = 'last_work_entry_sync_at';
   static const String lastLearningEntrySyncKey = 'last_learning_entry_sync_at';
+  static const String learningGoalMinutesKeyPrefix = 'learning_goal_minutes';
+  static const String learningGoalUpdatedAtKeyPrefix =
+      'learning_goal_updated_at';
+  static const String learningGoalPendingKeyPrefix = 'learning_goal_pending';
+  static const String workGoalMinutesKeyPrefix = 'work_goal_minutes';
+  static const String workGoalUpdatedAtKeyPrefix = 'work_goal_updated_at';
+  static const String workGoalPendingKeyPrefix = 'work_goal_pending';
 
   // Pagination
   static const int pageSize = 30;

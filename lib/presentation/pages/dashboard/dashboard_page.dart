@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../blocs/auth/auth_bloc.dart';
+import '../../blocs/learning_goal/learning_goal_cubit.dart';
+import '../../blocs/work_goal/work_goal_cubit.dart';
 import '../../blocs/task/task_bloc.dart';
 import '../../blocs/theme/theme_cubit.dart';
+import '../../widgets/monthly_learning_progress_card.dart';
 import '../../widgets/task_card.dart';
 import '../../widgets/stats_summary_card.dart';
 import '../../../config/theme.dart';
@@ -34,6 +38,10 @@ class DashboardPage extends StatelessWidget {
                         _buildGreeting(context, user?.displayName),
                         const SizedBox(height: 20),
                         _buildStatsSummary(context, taskState),
+                        const SizedBox(height: 16),
+                        _buildWorkGoalSummary(context),
+                        const SizedBox(height: 12),
+                        _buildLearningGoalSummary(context),
                         const SizedBox(height: 24),
                         if (taskState.overdueTasks.isNotEmpty) ...[
                           _buildSectionHeader(
@@ -170,6 +178,56 @@ class DashboardPage extends StatelessWidget {
         ),
       ],
     ).animate().fadeIn(duration: 400.ms, delay: 100.ms);
+  }
+
+  Widget _buildLearningGoalSummary(BuildContext context) {
+    final now = DateTime.now();
+    final monthLabel = DateFormat('MMMM yyyy').format(now);
+
+    return BlocBuilder<LearningGoalCubit, LearningGoalState>(
+      builder: (context, state) {
+        final goal = state.goalForMonth(now);
+        final learned = state.learnedForMonth(now);
+        final remaining = state.remainingForMonth(now);
+        final progress = state.progressForMonth(now);
+
+        return MonthlyLearningProgressCard(
+          title: 'Monthly learning goal',
+          monthLabel: monthLabel,
+          learned: learned,
+          goal: goal,
+          remaining: remaining,
+          progress: progress,
+          actionLabel: state.hasGoalForMonth(now) ? 'Edit goal' : 'Set goal',
+          onActionPressed: () => context.go('/learninglog'),
+        ).animate().fadeIn(duration: 400.ms, delay: 180.ms);
+      },
+    );
+  }
+
+  Widget _buildWorkGoalSummary(BuildContext context) {
+    final now = DateTime.now();
+    final monthLabel = DateFormat('MMMM yyyy').format(now);
+
+    return BlocBuilder<WorkGoalCubit, WorkGoalState>(
+      builder: (context, state) {
+        final goal = state.goalForMonth(now);
+        final worked = state.workedForMonth(now);
+        final remaining = state.remainingForMonth(now);
+        final progress = state.progressForMonth(now);
+
+        return MonthlyLearningProgressCard(
+          title: 'Monthly work goal',
+          monthLabel: monthLabel,
+          learned: worked,
+          goal: goal,
+          remaining: remaining,
+          progress: progress,
+          actionLabel: state.hasGoalForMonth(now) ? 'Edit goal' : 'Set goal',
+          onActionPressed: () => context.go('/worklog'),
+        ).animate().fadeIn(duration: 400.ms, delay: 140.ms);
+      },
+    );
   }
 
   Widget _buildSectionHeader(

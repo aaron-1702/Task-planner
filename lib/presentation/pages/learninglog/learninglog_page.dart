@@ -7,7 +7,9 @@ import 'package:intl/intl.dart';
 import '../../../core/di/injection.dart';
 import '../../../domain/entities/learning_entry.dart';
 import '../../blocs/auth/auth_bloc.dart';
+import '../../blocs/learning_goal/learning_goal_cubit.dart';
 import '../../blocs/learninglog/learninglog_bloc.dart';
+import '../../widgets/monthly_learning_progress_card.dart';
 
 class LearninglogPage extends StatelessWidget {
   const LearninglogPage({super.key});
@@ -62,13 +64,14 @@ class _LearninglogView extends StatelessWidget {
             ),
           ],
         ),
-        body: const Column(
+        body: Column(
           children: [
-            _ViewModeSelector(),
-            _DateNavigator(),
-            LearningTimerCard(),
-            _SummaryBanner(),
-            Expanded(child: _EntryList()),
+            const _ViewModeSelector(),
+            const _DateNavigator(),
+            const LearningTimerCard(),
+            const _SummaryBanner(),
+            const _MonthlyGoalPanel(),
+            const Expanded(child: _EntryList()),
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
@@ -99,6 +102,107 @@ class _LearninglogView extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _MonthlyGoalPanel extends StatelessWidget {
+  const _MonthlyGoalPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedDate =
+        context.select<LearninglogBloc, DateTime>((b) => b.state.selectedDate);
+    final monthLabel = DateFormat('MMMM yyyy').format(selectedDate);
+
+    return BlocBuilder<LearningGoalCubit, LearningGoalState>(
+      builder: (context, goalState) {
+        final goal = goalState.goalForMonth(selectedDate);
+        final learned = goalState.learnedForMonth(selectedDate);
+        final remaining = goalState.remainingForMonth(selectedDate);
+        final progress = goalState.progressForMonth(selectedDate);
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+          child: MonthlyLearningProgressCard(
+            title: 'Monthly goal',
+            monthLabel: monthLabel,
+            learned: learned,
+            goal: goal,
+            remaining: remaining,
+            progress: progress,
+            actionLabel:
+                goalState.hasGoalForMonth(selectedDate) ? 'Edit' : 'Set',
+            onActionPressed: () => _showMonthlyGoalDialog(context, selectedDate),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showMonthlyGoalDialog(BuildContext context, DateTime month) async {
+    final existingGoal = context.read<LearningGoalCubit>().state.goalForMonth(month);
+    final hoursCtrl = TextEditingController(
+      text: (existingGoal.inMinutes ~/ 60).toString(),
+    );
+    final minutesCtrl = TextEditingController(
+      text: (existingGoal.inMinutes % 60).toString().padLeft(2, '0'),
+    );
+
+    final result = await showDialog<Duration?>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('Monthly goal for ${DateFormat('MMMM yyyy').format(month)}'),
+          content: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: hoursCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Hours'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: minutesCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Minutes'),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            if (existingGoal.inMinutes > 0)
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(Duration.zero),
+                child: const Text('Clear'),
+              ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final hours = int.tryParse(hoursCtrl.text.trim()) ?? 0;
+                final minutes = int.tryParse(minutesCtrl.text.trim()) ?? 0;
+                final normalizedMinutes = minutes.clamp(0, 59);
+                final totalMinutes = (hours * 60) + normalizedMinutes;
+                Navigator.of(dialogContext).pop(Duration(minutes: totalMinutes));
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    hoursCtrl.dispose();
+    minutesCtrl.dispose();
+
+    if (result == null || !context.mounted) return;
+
+    await context.read<LearningGoalCubit>().setGoalForMonth(month, result);
   }
 }
 

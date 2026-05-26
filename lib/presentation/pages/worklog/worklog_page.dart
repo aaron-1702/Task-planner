@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/di/injection.dart';
+import '../../blocs/work_goal/work_goal_cubit.dart';
+import '../../widgets/monthly_learning_progress_card.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/worklog/worklog_bloc.dart';
 import '../../../domain/entities/work_entry.dart';
@@ -62,6 +64,7 @@ class _WorklogView extends StatelessWidget {
             _DateNavigator(),
             _TimerCard(),
             _SummaryBanner(),
+            _MonthlyWorkGoalPanel(),
             Expanded(child: _EntryList()),
           ],
         ),
@@ -391,6 +394,106 @@ class _StatChip extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _MonthlyWorkGoalPanel extends StatelessWidget {
+  const _MonthlyWorkGoalPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedDate =
+        context.select<WorklogBloc, DateTime>((b) => b.state.selectedDate);
+    final monthLabel = DateFormat('MMMM yyyy').format(selectedDate);
+
+    return BlocBuilder<WorkGoalCubit, WorkGoalState>(
+      builder: (context, goalState) {
+        final goal = goalState.goalForMonth(selectedDate);
+        final worked = goalState.workedForMonth(selectedDate);
+        final remaining = goalState.remainingForMonth(selectedDate);
+        final progress = goalState.progressForMonth(selectedDate);
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+          child: MonthlyLearningProgressCard(
+            title: 'Monthly work goal',
+            monthLabel: monthLabel,
+            learned: worked,
+            goal: goal,
+            remaining: remaining,
+            progress: progress,
+            actionLabel: goalState.hasGoalForMonth(selectedDate) ? 'Edit' : 'Set',
+            onActionPressed: () => _showMonthlyGoalDialog(context, selectedDate),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showMonthlyGoalDialog(BuildContext context, DateTime month) async {
+    final existingGoal = context.read<WorkGoalCubit>().state.goalForMonth(month);
+    final hoursCtrl = TextEditingController(
+      text: (existingGoal.inMinutes ~/ 60).toString(),
+    );
+    final minutesCtrl = TextEditingController(
+      text: (existingGoal.inMinutes % 60).toString().padLeft(2, '0'),
+    );
+
+    final result = await showDialog<Duration?>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('Monthly work goal for ${DateFormat('MMMM yyyy').format(month)}'),
+          content: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: hoursCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Hours'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: minutesCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Minutes'),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            if (existingGoal.inMinutes > 0)
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(Duration.zero),
+                child: const Text('Clear'),
+              ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final hours = int.tryParse(hoursCtrl.text.trim()) ?? 0;
+                final minutes = int.tryParse(minutesCtrl.text.trim()) ?? 0;
+                final normalizedMinutes = minutes.clamp(0, 59);
+                final totalMinutes = (hours * 60) + normalizedMinutes;
+                Navigator.of(dialogContext).pop(Duration(minutes: totalMinutes));
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    hoursCtrl.dispose();
+    minutesCtrl.dispose();
+
+    if (result == null || !context.mounted) return;
+
+    await context.read<WorkGoalCubit>().setGoalForMonth(month, result);
   }
 }
 

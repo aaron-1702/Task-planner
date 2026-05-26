@@ -5,11 +5,17 @@ import 'package:go_router/go_router.dart';
 import 'config/router.dart';
 import 'config/theme.dart';
 import 'core/di/injection.dart';
+import 'data/datasources/remote/learning_goal_remote_store.dart';
+import 'data/datasources/remote/work_goal_remote_store.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/calendar_event/cal_event_bloc.dart';
+import 'presentation/blocs/learning_goal/learning_goal_cubit.dart';
+import 'presentation/blocs/work_goal/work_goal_cubit.dart';
 import 'presentation/blocs/task/task_bloc.dart';
 import 'presentation/blocs/calendar/calendar_bloc.dart';
 import 'presentation/blocs/theme/theme_cubit.dart';
+import 'domain/usecases/learning_entry_usecases.dart';
+import 'domain/usecases/work_entry_usecases.dart';
 
 class SmartTaskPlannerApp extends StatefulWidget {
   const SmartTaskPlannerApp({super.key});
@@ -44,6 +50,18 @@ class _SmartTaskPlannerAppState extends State<SmartTaskPlannerApp> {
         BlocProvider(create: (_) => getIt<CalendarBloc>()),
         BlocProvider(create: (_) => getIt<CalendarEventBloc>()),
         BlocProvider(create: (_) => getIt<ThemeCubit>()),
+        BlocProvider(
+          create: (_) => LearningGoalCubit(
+            getIt<WatchLearningEntriesUseCase>(),
+            SupabaseLearningGoalRemoteStore(getIt()),
+          ),
+        ),
+        BlocProvider(
+          create: (_) => WorkGoalCubit(
+            getIt<WatchWorkEntriesUseCase>(),
+            SupabaseWorkGoalRemoteStore(getIt()),
+          ),
+        ),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, themeMode) {

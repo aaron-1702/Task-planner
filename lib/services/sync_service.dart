@@ -176,6 +176,8 @@ class SyncService {
       _isOnline = true;
       if (_currentUserId != null) {
         await _performSync(_currentUserId!);
+        await _workEntryRepository.syncFromRemote(_currentUserId!);
+        await _learningEntryRepository.syncFromRemote(_currentUserId!);
       }
     } else {
       _isOnline = online;

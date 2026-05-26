@@ -5,10 +5,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/constants/app_constants.dart';
+import '../domain/repositories/learning_entry_repository.dart';
 import '../domain/repositories/task_repository.dart';
 import '../domain/repositories/work_entry_repository.dart';
 import '../data/datasources/local/local_database.dart';
-import '../data/datasources/remote/supabase_task_datasource.dart';
 
 /// Orchestrates offline-first sync between local SQLite (Drift)
 /// and Supabase Realtime.
@@ -21,20 +21,21 @@ import '../data/datasources/remote/supabase_task_datasource.dart';
 class SyncService {
   final TaskRepository _taskRepository;
   final WorkEntryRepository _workEntryRepository;
-  final SupabaseTaskDataSource _remote;
+  final LearningEntryRepository _learningEntryRepository;
   final SupabaseClient _supabase;
   final LocalDatabase _local;
 
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   RealtimeChannel? _tasksChannel;
   RealtimeChannel? _workEntriesChannel;
+  RealtimeChannel? _learningEntriesChannel;
   bool _isOnline = true;
   String? _currentUserId;
 
   SyncService(
     this._taskRepository,
     this._workEntryRepository,
-    this._remote,
+    this._learningEntryRepository,
     this._supabase,
     this._local,
   );
@@ -46,9 +47,8 @@ class SyncService {
 
     // Monitor connectivity
     _connectivitySub?.cancel();
-    _connectivitySub = Connectivity()
-        .onConnectivityChanged
-        .listen(_onConnectivityChanged);
+    _connectivitySub =
+        Connectivity().onConnectivityChanged.listen(_onConnectivityChanged);
 
     // Supabase Realtime subscriptions
     _subscribeToRealtime(userId);
@@ -57,14 +57,18 @@ class SyncService {
     await _performFullSync(userId);
     // Pull work entries from all devices
     await _workEntryRepository.syncFromRemote(userId);
+    // Pull learning entries from all devices
+    await _learningEntryRepository.syncFromRemote(userId);
   }
 
   Future<void> stop() async {
     _connectivitySub?.cancel();
     _tasksChannel?.unsubscribe();
     _workEntriesChannel?.unsubscribe();
+    _learningEntriesChannel?.unsubscribe();
     _tasksChannel = null;
     _workEntriesChannel = null;
+    _learningEntriesChannel = null;
     _currentUserId = null;
   }
 
@@ -73,6 +77,7 @@ class SyncService {
   void _subscribeToRealtime(String userId) {
     _tasksChannel?.unsubscribe();
     _workEntriesChannel?.unsubscribe();
+    _learningEntriesChannel?.unsubscribe();
 
     _tasksChannel = _supabase
         .channel(AppConstants.tasksChannel)
@@ -101,6 +106,21 @@ class SyncService {
             value: userId,
           ),
           callback: (payload) => _onWorkEntryRealtimeChange(payload),
+        )
+        .subscribe();
+
+    _learningEntriesChannel = _supabase
+        .channel(AppConstants.learningEntriesChannel)
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: AppConstants.learningEntriesTable,
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: userId,
+          ),
+          callback: (payload) => _onLearningEntryRealtimeChange(payload),
         )
         .subscribe();
   }
@@ -133,10 +153,22 @@ class SyncService {
     }
   }
 
+  void _onLearningEntryRealtimeChange(PostgresChangePayload payload) {
+    if (payload.eventType == PostgresChangeEvent.delete) {
+      final entryId = payload.oldRecord['id'] as String?;
+      if (entryId != null) {
+        _local.deleteLearningEntryById(entryId);
+      }
+      return;
+    }
+    if (_currentUserId != null) {
+      _learningEntryRepository.syncFromRemote(_currentUserId!);
+    }
+  }
+
   // ── Connectivity ───────────────────────────────────────────────────────────
 
-  Future<void> _onConnectivityChanged(
-      List<ConnectivityResult> results) async {
+  Future<void> _onConnectivityChanged(List<ConnectivityResult> results) async {
     final online = !results.contains(ConnectivityResult.none);
 
     if (!_isOnline && online) {
@@ -173,12 +205,10 @@ class SyncService {
   Future<void> _performSync(String userId) async {
     final prefs = await SharedPreferences.getInstance();
     final lastSyncStr = prefs.getString(AppConstants.lastSyncKey);
-    final lastSync = lastSyncStr != null
-        ? DateTime.parse(lastSyncStr)
-        : DateTime.utc(1970);
+    final lastSync =
+        lastSyncStr != null ? DateTime.parse(lastSyncStr) : DateTime.utc(1970);
 
-    final result =
-        await _taskRepository.syncTasks(userId, lastSync);
+    final result = await _taskRepository.syncTasks(userId, lastSync);
 
     result.fold(
       (failure) => null, // Log silently; offline is expected
@@ -196,6 +226,8 @@ class SyncService {
   Future<void> forceSync() async {
     if (_currentUserId != null) {
       await _performSync(_currentUserId!);
+      await _workEntryRepository.syncFromRemote(_currentUserId!);
+      await _learningEntryRepository.syncFromRemote(_currentUserId!);
     }
   }
 

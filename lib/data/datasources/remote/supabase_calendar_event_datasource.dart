@@ -1,7 +1,6 @@
 import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../domain/entities/calendar_event.dart';
 import '../../models/calendar_event_model.dart';
 
 @singleton

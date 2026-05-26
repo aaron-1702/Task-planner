@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../blocs/task/task_bloc.dart';
 import '../../widgets/task_card.dart';
@@ -45,7 +44,8 @@ class _TaskListPageState extends State<TaskListPage>
           filtered = filtered.where((t) => t.priority == f.priority).toList();
         }
         if (f.categoryId != null) {
-          filtered = filtered.where((t) => t.categoryId == f.categoryId).toList();
+          filtered =
+              filtered.where((t) => t.categoryId == f.categoryId).toList();
         }
         if (f.query != null && f.query!.isNotEmpty) {
           final q = f.query!.toLowerCase();
@@ -56,9 +56,12 @@ class _TaskListPageState extends State<TaskListPage>
               .toList();
         }
 
-        final open = filtered.where((t) => t.status == TaskStatus.open).toList();
-        final inProgress = filtered.where((t) => t.status == TaskStatus.inProgress).toList();
-        final done = filtered.where((t) => t.status == TaskStatus.done).toList();
+        final open =
+            filtered.where((t) => t.status == TaskStatus.open).toList();
+        final inProgress =
+            filtered.where((t) => t.status == TaskStatus.inProgress).toList();
+        final done =
+            filtered.where((t) => t.status == TaskStatus.done).toList();
 
         return Scaffold(
           body: NestedScrollView(
@@ -95,12 +98,8 @@ class _TaskListPageState extends State<TaskListPage>
                       TabBar(
                         controller: _tabController,
                         tabs: [
-                          Tab(
-                              text:
-                                  'Open (${open.length})'),
-                          Tab(
-                              text:
-                                  'In Progress (${inProgress.length})'),
+                          Tab(text: 'Open (${open.length})'),
+                          Tab(text: 'In Progress (${inProgress.length})'),
                           Tab(text: 'Done (${done.length})'),
                         ],
                       ),
@@ -178,7 +177,7 @@ class _TaskList extends StatelessWidget {
                   color: Theme.of(context)
                       .colorScheme
                       .onSurface
-                      .withOpacity(0.25)),
+                      .withValues(alpha: 0.25)),
               const SizedBox(height: 16),
               Text(emptyTitle,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -186,16 +185,17 @@ class _TaskList extends StatelessWidget {
                         color: Theme.of(context)
                             .colorScheme
                             .onSurface
-                            .withOpacity(0.6),
+                            .withValues(alpha: 0.6),
                       )),
-              if (emptySubtitle.isNotEmpty) ...[                const SizedBox(height: 8),
+              if (emptySubtitle.isNotEmpty) ...[
+                const SizedBox(height: 8),
                 Text(emptySubtitle,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context)
                               .colorScheme
                               .onSurface
-                              .withOpacity(0.4),
+                              .withValues(alpha: 0.4),
                         )),
               ],
             ],
@@ -259,8 +259,7 @@ class _FilterSheet extends StatelessWidget {
                         .titleLarge
                         ?.copyWith(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 20),
-                Text('Priority',
-                    style: Theme.of(context).textTheme.labelLarge),
+                Text('Priority', style: Theme.of(context).textTheme.labelLarge),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -283,8 +282,9 @@ class _FilterSheet extends StatelessWidget {
                 if (!filter.isEmpty)
                   FilledButton.tonal(
                     onPressed: () {
-                      context.read<TaskBloc>().add(
-                          const TaskFilterChanged(TaskFilter()));
+                      context
+                          .read<TaskBloc>()
+                          .add(const TaskFilterChanged(TaskFilter()));
                       Navigator.pop(context);
                     },
                     child: const Text('Clear Filters'),

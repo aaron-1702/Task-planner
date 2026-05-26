@@ -30,7 +30,9 @@ class TaskCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
         ),
         child: Icon(
-          task.status == TaskStatus.done ? Icons.undo : Icons.check_circle_outline,
+          task.status == TaskStatus.done
+              ? Icons.undo
+              : Icons.check_circle_outline,
           color: Colors.white,
           size: 28,
         ),
@@ -51,8 +53,7 @@ class TaskCard extends StatelessWidget {
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text('Delete Task'),
-            content:
-                Text('Delete "${task.title}"? This cannot be undone.'),
+            content: Text('Delete "${task.title}"? This cannot be undone.'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
@@ -71,17 +72,19 @@ class TaskCard extends StatelessWidget {
       onDismissed: (direction) {
         if (direction == DismissDirection.startToEnd) {
           context.read<TaskBloc>().add(TaskStatusChanged(
-            task.id,
-            task.status == TaskStatus.done ? TaskStatus.open : TaskStatus.done,
-          ));
+                task.id,
+                task.status == TaskStatus.done
+                    ? TaskStatus.open
+                    : TaskStatus.done,
+              ));
         } else {
           context.read<TaskBloc>().add(TaskDeleted(task.id));
         }
       },
       child: Card(
         child: InkWell(
-          onTap: () => context.pushNamed('task-detail',
-              pathParameters: {'id': task.id}),
+          onTap: () =>
+              context.pushNamed('task-detail', pathParameters: {'id': task.id}),
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: EdgeInsets.all(compact ? 12 : 16),
@@ -113,7 +116,8 @@ class TaskCard extends StatelessWidget {
                                         ? TextDecoration.lineThrough
                                         : null,
                                     color: task.status == TaskStatus.done
-                                        ? colorScheme.onSurface.withOpacity(0.5)
+                                        ? colorScheme.onSurface
+                                            .withValues(alpha: 0.5)
                                         : null,
                                   ),
                             ),
@@ -127,7 +131,7 @@ class TaskCard extends StatelessWidget {
                                     : Icons.check_circle_outline,
                                 size: 18,
                                 color: task.status == TaskStatus.done
-                                    ? AppTheme.statusDone.withOpacity(0.7)
+                                    ? AppTheme.statusDone.withValues(alpha: 0.7)
                                     : AppTheme.statusDone,
                               ),
                               padding: EdgeInsets.zero,
@@ -138,17 +142,18 @@ class TaskCard extends StatelessWidget {
                                   : 'Mark as done',
                               onPressed: () {
                                 context.read<TaskBloc>().add(TaskStatusChanged(
-                                  task.id,
-                                  task.status == TaskStatus.done
-                                      ? TaskStatus.open
-                                      : TaskStatus.done,
-                                ));
+                                      task.id,
+                                      task.status == TaskStatus.done
+                                          ? TaskStatus.open
+                                          : TaskStatus.done,
+                                    ));
                               },
                             ),
                           IconButton(
                             icon: Icon(Icons.delete_outline,
                                 size: 18,
-                                color: colorScheme.onSurface.withOpacity(0.4)),
+                                color: colorScheme.onSurface
+                                    .withValues(alpha: 0.4)),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
                             visualDensity: VisualDensity.compact,
@@ -167,8 +172,7 @@ class TaskCard extends StatelessWidget {
                                       child: const Text('Cancel'),
                                     ),
                                     FilledButton(
-                                      onPressed: () =>
-                                          Navigator.pop(ctx, true),
+                                      onPressed: () => Navigator.pop(ctx, true),
                                       style: FilledButton.styleFrom(
                                           backgroundColor:
                                               AppTheme.priorityHigh),
@@ -197,7 +201,7 @@ class TaskCard extends StatelessWidget {
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: colorScheme.onSurface
-                                        .withOpacity(0.6),
+                                        .withValues(alpha: 0.6),
                                   ),
                         ),
                       ],
@@ -207,13 +211,12 @@ class TaskCard extends StatelessWidget {
                         runSpacing: 4,
                         children: [
                           if (task.deadline != null)
-                            _DeadlineChip(deadline: task.deadline!,
+                            _DeadlineChip(
+                                deadline: task.deadline!,
                                 isOverdue: task.isOverdue),
                           _PriorityChip(priority: task.priority),
                           _StatusChip(status: task.status),
-                          ...task.tags
-                              .take(2)
-                              .map((tag) => _TagChip(tag: tag)),
+                          ...task.tags.take(2).map((tag) => _TagChip(tag: tag)),
                           if (task.subtasks.isNotEmpty)
                             _SubtaskProgressChip(subtasks: task.subtasks),
                         ],
@@ -251,9 +254,7 @@ class _PriorityCheckbox extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-            color: isDone
-                ? AppTheme.statusDone
-                : _priorityColor(task.priority),
+            color: isDone ? AppTheme.statusDone : _priorityColor(task.priority),
             width: 2,
           ),
           color: isDone ? AppTheme.statusDone : Colors.transparent,
@@ -313,8 +314,7 @@ class _PriorityChip extends StatelessWidget {
       TaskPriority.low: ('Low', AppTheme.priorityLow),
     };
     final (label, color) = labels[priority]!;
-    return _Chip(
-        label: label, icon: Icons.flag_outlined, color: color);
+    return _Chip(label: label, icon: Icons.flag_outlined, color: color);
   }
 }
 
@@ -359,7 +359,7 @@ class _Chip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(

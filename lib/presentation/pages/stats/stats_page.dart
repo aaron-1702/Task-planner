@@ -51,8 +51,7 @@ class StatsPage extends StatelessWidget {
             !t.isDeleted &&
             t.status != TaskStatus.done &&
             t.deadline!.isAfter(DateTime.now()) &&
-            t.deadline!.isBefore(
-                DateTime.now().add(const Duration(days: 7))))
+            t.deadline!.isBefore(DateTime.now().add(const Duration(days: 7))))
         .length;
 
     return Card(
@@ -103,7 +102,7 @@ class StatsPage extends StatelessWidget {
                     color: Theme.of(context)
                         .colorScheme
                         .onSurface
-                        .withOpacity(0.6),
+                        .withValues(alpha: 0.6),
                   ),
             ),
           ],
@@ -160,8 +159,8 @@ class StatsPage extends StatelessWidget {
                           if (value != value.roundToDouble()) {
                             return const SizedBox.shrink();
                           }
-                          final day = now
-                              .subtract(Duration(days: 6 - value.toInt()));
+                          final day =
+                              now.subtract(Duration(days: 6 - value.toInt()));
                           return Padding(
                             padding: const EdgeInsets.only(top: 4),
                             child: Text(DateFormat('E').format(day),
@@ -183,7 +182,7 @@ class StatsPage extends StatelessWidget {
                         color: Theme.of(context)
                             .colorScheme
                             .primary
-                            .withOpacity(0.15),
+                            .withValues(alpha: 0.15),
                       ),
                       dotData: const FlDotData(show: true),
                     ),
@@ -197,19 +196,15 @@ class StatsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPriorityBreakdown(
-      BuildContext context, TaskState state) {
+  Widget _buildPriorityBreakdown(BuildContext context, TaskState state) {
     final high = state.tasks
-        .where((t) =>
-            t.priority == TaskPriority.high && !t.isDeleted)
+        .where((t) => t.priority == TaskPriority.high && !t.isDeleted)
         .length;
     final medium = state.tasks
-        .where((t) =>
-            t.priority == TaskPriority.medium && !t.isDeleted)
+        .where((t) => t.priority == TaskPriority.medium && !t.isDeleted)
         .length;
     final low = state.tasks
-        .where((t) =>
-            t.priority == TaskPriority.low && !t.isDeleted)
+        .where((t) => t.priority == TaskPriority.low && !t.isDeleted)
         .length;
     final total = high + medium + low;
 
@@ -276,8 +271,7 @@ class StatsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildEisenhowerMatrix(
-      BuildContext context, TaskState state) {
+  Widget _buildEisenhowerMatrix(BuildContext context, TaskState state) {
     // Urgent = overdue or due today; Important = high priority
     final quadrants = {
       'Do First\n(Urgent + Important)': state.tasks
@@ -329,7 +323,7 @@ class StatsPage extends StatelessWidget {
                     color: Theme.of(context)
                         .colorScheme
                         .onSurface
-                        .withOpacity(0.6))),
+                        .withValues(alpha: 0.6))),
             const SizedBox(height: 16),
             GridView.count(
               crossAxisCount: 2,
@@ -339,16 +333,20 @@ class StatsPage extends StatelessWidget {
               crossAxisSpacing: 12,
               childAspectRatio: 1.5,
               children: [
-                _MatrixCell('Do First\n(Urgent + Important)',
+                _MatrixCell(
+                    'Do First\n(Urgent + Important)',
                     quadrants['Do First\n(Urgent + Important)']!,
                     AppTheme.priorityHigh),
-                _MatrixCell('Schedule\n(Not Urgent + Important)',
+                _MatrixCell(
+                    'Schedule\n(Not Urgent + Important)',
                     quadrants['Schedule\n(Not Urgent + Important)']!,
                     AppTheme.statusInProgress),
-                _MatrixCell('Delegate\n(Urgent + Not Important)',
+                _MatrixCell(
+                    'Delegate\n(Urgent + Not Important)',
                     quadrants['Delegate\n(Urgent + Not Important)']!,
                     AppTheme.priorityMedium),
-                _MatrixCell('Eliminate\n(Not Urgent + Not Important)',
+                _MatrixCell(
+                    'Eliminate\n(Not Urgent + Not Important)',
                     quadrants['Eliminate\n(Not Urgent + Not Important)']!,
                     AppTheme.priorityLow),
               ],
@@ -381,7 +379,7 @@ class _StatItem extends StatelessWidget {
                   color: Theme.of(context)
                       .colorScheme
                       .onSurface
-                      .withOpacity(0.6),
+                      .withValues(alpha: 0.6),
                 )),
       ],
     );
@@ -404,8 +402,7 @@ class _LegendItem extends StatelessWidget {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 8),
-        Text('$label ($count)',
-            style: Theme.of(context).textTheme.bodySmall),
+        Text('$label ($count)', style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }
@@ -422,9 +419,9 @@ class _MatrixCell extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -433,9 +430,7 @@ class _MatrixCell extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: color),
+                fontSize: 10, fontWeight: FontWeight.w500, color: color),
           ),
           Text('$count tasks',
               style: Theme.of(context)

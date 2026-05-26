@@ -12,16 +12,19 @@ class AppConstants {
   static const String remindersTable = 'reminders';
   static const String recurringRulesTable = 'recurring_rules';
   static const String workEntriesTable = 'work_entries';
+  static const String learningEntriesTable = 'learning_entries';
 
   // Supabase realtime channels
   static const String tasksChannel = 'tasks_channel';
   static const String workEntriesChannel = 'work_entries_channel';
+  static const String learningEntriesChannel = 'learning_entries_channel';
 
   // SharedPreferences keys
   static const String themeKey = 'theme_mode';
   static const String onboardingKey = 'onboarding_done';
   static const String lastSyncKey = 'last_sync_at';
   static const String lastWorkEntrySyncKey = 'last_work_entry_sync_at';
+  static const String lastLearningEntrySyncKey = 'last_learning_entry_sync_at';
 
   // Pagination
   static const int pageSize = 30;
@@ -50,4 +53,6 @@ class RouteNames {
   static const String calendar = 'calendar';
   static const String stats = 'stats';
   static const String settings = 'settings';
+  static const String worklog = 'worklog';
+  static const String learninglog = 'learninglog';
 }

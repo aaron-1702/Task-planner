@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -62,8 +62,7 @@ class _CalendarPageState extends State<CalendarPage> {
                         slivers: [
                           SliverAppBar(
                             title: const Text('Calendar',
-                                style:
-                                    TextStyle(fontWeight: FontWeight.w700)),
+                                style: TextStyle(fontWeight: FontWeight.w700)),
                             floating: true,
                             snap: true,
                             actions: [
@@ -71,10 +70,8 @@ class _CalendarPageState extends State<CalendarPage> {
                                 onPressed: () {
                                   if (userId != null) {
                                     context.read<CalendarBloc>().add(
-                                          CalendarDaySelected(
-                                              DateTime.now(),
-                                              DateTime.now(),
-                                              userId),
+                                          CalendarDaySelected(DateTime.now(),
+                                              DateTime.now(), userId),
                                         );
                                   }
                                 },
@@ -113,22 +110,19 @@ class _CalendarPageState extends State<CalendarPage> {
                                   shape: BoxShape.circle,
                                 ),
                                 selectedDecoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .primary,
+                                  color: Theme.of(context).colorScheme.primary,
                                   shape: BoxShape.circle,
                                 ),
                                 markerDecoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .secondary,
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
                                   shape: BoxShape.circle,
                                 ),
                               ),
                               calendarBuilders: CalendarBuilders(
                                 markerBuilder: (ctx, day, events) =>
-                                    _buildMarkers(
-                                        ctx, day, events, hasBirthdayOnDay(day)),
+                                    _buildMarkers(ctx, day, events,
+                                        hasBirthdayOnDay(day)),
                               ),
                               onDaySelected: (sel, focused) {
                                 if (userId != null) {
@@ -143,8 +137,7 @@ class _CalendarPageState extends State<CalendarPage> {
                               onPageChanged: (focused) {
                                 if (userId != null) {
                                   context.read<CalendarBloc>().add(
-                                        CalendarPageChanged(
-                                            focused, userId),
+                                        CalendarPageChanged(focused, userId),
                                       );
                                 }
                               },
@@ -171,23 +164,22 @@ class _CalendarPageState extends State<CalendarPage> {
                                       ),
                                     ),
                                     TextButton.icon(
-                                      onPressed: () =>
-                                          context.pushNamed('event-new',
-                                              queryParameters: {
-                                            'date': selectedDay
-                                                .toIso8601String(),
+                                      onPressed: () => context.pushNamed(
+                                          'event-new',
+                                          queryParameters: {
+                                            'date':
+                                                selectedDay.toIso8601String(),
                                           }),
-                                      icon: const Icon(
-                                          Icons.event_outlined,
+                                      icon: const Icon(Icons.event_outlined,
                                           size: 18),
                                       label: const Text('Add Event'),
                                     ),
                                     TextButton.icon(
-                                      onPressed: () =>
-                                          context.pushNamed('task-new',
-                                              queryParameters: {
-                                            'date': selectedDay
-                                                .toIso8601String(),
+                                      onPressed: () => context.pushNamed(
+                                          'task-new',
+                                          queryParameters: {
+                                            'date':
+                                                selectedDay.toIso8601String(),
                                           }),
                                       icon: const Icon(Icons.add, size: 18),
                                       label: const Text('Add Task'),
@@ -200,13 +192,11 @@ class _CalendarPageState extends State<CalendarPage> {
                           // Events for selected day
                           if (selectedEvents.isNotEmpty)
                             SliverPadding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
                               sliver: SliverList(
                                 delegate: SliverChildBuilderDelegate(
                                   (context, i) => Padding(
-                                    padding:
-                                        const EdgeInsets.only(bottom: 8),
+                                    padding: const EdgeInsets.only(bottom: 8),
                                     child: _EventCard(
                                       event: selectedEvents[i],
                                       userId: userId ?? '',
@@ -232,7 +222,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                       color: Theme.of(context)
                                           .colorScheme
                                           .onSurface
-                                          .withOpacity(0.3),
+                                          .withValues(alpha: 0.3),
                                     ),
                                     const SizedBox(height: 12),
                                     Text(
@@ -244,7 +234,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                               color: Theme.of(context)
                                                   .colorScheme
                                                   .onSurface
-                                                  .withOpacity(0.5)),
+                                                  .withValues(alpha: 0.5)),
                                     ),
                                   ],
                                 ),
@@ -253,13 +243,11 @@ class _CalendarPageState extends State<CalendarPage> {
 
                           // Tasks for selected day
                           SliverPadding(
-                            padding:
-                                const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
                             sliver: SliverList(
                               delegate: SliverChildBuilderDelegate(
                                 (context, index) => Padding(
-                                  padding:
-                                      const EdgeInsets.only(bottom: 10),
+                                  padding: const EdgeInsets.only(bottom: 10),
                                   child: _DraggableTaskCard(
                                     task: selectedTasks[index],
                                     userId: userId ?? '',
@@ -282,8 +270,8 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  Widget? _buildMarkers(BuildContext context, DateTime day,
-      List<Object> events, bool hasBirthday) {
+  Widget? _buildMarkers(BuildContext context, DateTime day, List<Object> events,
+      bool hasBirthday) {
     if (events.isEmpty) return null;
     final tasks = events.whereType<Task>().toList();
     final calEvents = events.whereType<CalendarEvent>().toList();
@@ -300,28 +288,28 @@ class _CalendarPageState extends State<CalendarPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (hasBirthday)
-          const Text('🎂', style: TextStyle(fontSize: 10)),
+        if (hasBirthday) const Text('??', style: TextStyle(fontSize: 10)),
         if (calEvents.any((e) => e.type != CalendarEventType.birthday))
           Container(
-            width: 6, height: 6,
+            width: 6,
+            height: 6,
             margin: const EdgeInsets.symmetric(horizontal: 1),
-            decoration: const BoxDecoration(
-                shape: BoxShape.circle, color: Colors.teal),
+            decoration:
+                const BoxDecoration(shape: BoxShape.circle, color: Colors.teal),
           ),
         if (tasks.isNotEmpty)
           Container(
-            width: 6, height: 6,
+            width: 6,
+            height: 6,
             margin: const EdgeInsets.symmetric(horizontal: 1),
-            decoration: BoxDecoration(
-                shape: BoxShape.circle, color: dotColor),
+            decoration: BoxDecoration(shape: BoxShape.circle, color: dotColor),
           ),
       ],
     );
   }
 }
 
-// ── Event Card ────────────────────────────────────────────────────────────────
+// -- Event Card ----------------------------------------------------------------
 
 class _EventCard extends StatelessWidget {
   final CalendarEvent event;
@@ -342,7 +330,7 @@ class _EventCard extends StatelessWidget {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
-          color: Colors.red, borderRadius: BorderRadius.circular(16)),
+            color: Colors.red, borderRadius: BorderRadius.circular(16)),
         child: const Icon(Icons.delete_outline, color: Colors.white, size: 28),
       ),
       confirmDismiss: (_) async => await showDialog<bool>(
@@ -356,8 +344,7 @@ class _EventCard extends StatelessWidget {
                 child: const Text('Cancel')),
             FilledButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                style:
-                    FilledButton.styleFrom(backgroundColor: Colors.red),
+                style: FilledButton.styleFrom(backgroundColor: Colors.red),
                 child: const Text('Delete')),
           ],
         ),
@@ -367,25 +354,24 @@ class _EventCard extends StatelessWidget {
           .add(CalendarEventDeleted(event.id, userId)),
       child: Card(
         child: InkWell(
-          onTap: () => context.pushNamed('event-edit',
-              pathParameters: {'id': event.id}),
+          onTap: () =>
+              context.pushNamed('event-edit', pathParameters: {'id': event.id}),
           borderRadius: BorderRadius.circular(16),
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
                 Container(
-                  width: 44, height: 44,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.15),
+                    color: color.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    isBirthday
-                        ? Icons.cake_outlined
-                        : Icons.event_outlined,
-                    color: color, size: 22),
+                      isBirthday ? Icons.cake_outlined : Icons.event_outlined,
+                      color: color,
+                      size: 22),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -393,8 +379,8 @@ class _EventCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(event.title,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600)),
+                          style: theme.textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w600)),
                       if (isBirthday && age != null)
                         Text('Turns $age',
                             style: theme.textTheme.bodySmall
@@ -405,7 +391,7 @@ class _EventCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurface
-                                    .withOpacity(0.6))),
+                                    .withValues(alpha: 0.6))),
                     ],
                   ),
                 ),
@@ -416,17 +402,17 @@ class _EventCard extends StatelessWidget {
                       Icon(Icons.repeat,
                           size: 14,
                           color: theme.colorScheme.onSurface
-                              .withOpacity(0.5)),
+                              .withValues(alpha: 0.5)),
                     if (event.reminderMinutes != null)
                       Icon(Icons.notifications_outlined,
                           size: 14,
                           color: theme.colorScheme.onSurface
-                              .withOpacity(0.5)),
+                              .withValues(alpha: 0.5)),
                     Text(
                       DateFormat('HH:mm').format(event.startDate),
                       style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurface
-                              .withOpacity(0.6)),
+                              .withValues(alpha: 0.6)),
                     ),
                   ],
                 ),
@@ -439,7 +425,7 @@ class _EventCard extends StatelessWidget {
   }
 }
 
-// ── Draggable Task Card ───────────────────────────────────────────────────────
+// -- Draggable Task Card -------------------------------------------------------
 
 class _DraggableTaskCard extends StatelessWidget {
   final Task task;
@@ -457,14 +443,14 @@ class _DraggableTaskCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             child: TaskCard(task: task)),
       ),
-      childWhenDragging:
-          Opacity(opacity: 0.4, child: TaskCard(task: task)),
+      childWhenDragging: Opacity(opacity: 0.4, child: TaskCard(task: task)),
       child: DragTarget<Task>(
         onWillAcceptWithDetails: (d) => d.data.id != task.id,
         onAcceptWithDetails: (d) {
           if (task.deadline != null) {
-            context.read<CalendarBloc>().add(
-                  CalendarTaskDropped(d.data, task.deadline!));
+            context
+                .read<CalendarBloc>()
+                .add(CalendarTaskDropped(d.data, task.deadline!));
           }
         },
         builder: (context, _, __) => TaskCard(task: task),

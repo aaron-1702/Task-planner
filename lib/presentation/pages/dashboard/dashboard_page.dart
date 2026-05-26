@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../blocs/auth/auth_bloc.dart';
@@ -9,7 +8,6 @@ import '../../blocs/task/task_bloc.dart';
 import '../../blocs/theme/theme_cubit.dart';
 import '../../widgets/task_card.dart';
 import '../../widgets/stats_summary_card.dart';
-import '../../../domain/entities/task.dart';
 import '../../../config/theme.dart';
 import '../../../core/di/injection.dart';
 import '../../../services/sync_service.dart';
@@ -30,54 +28,51 @@ class DashboardPage extends StatelessWidget {
                 slivers: [
                   _buildAppBar(context, user?.displayName ?? user?.email ?? ''),
                   SliverPadding(
-                  padding: const EdgeInsets.all(20),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      _buildGreeting(context, user?.displayName),
-                      const SizedBox(height: 20),
-                      _buildStatsSummary(context, taskState),
-                      const SizedBox(height: 24),
-                      if (taskState.overdueTasks.isNotEmpty) ...[
+                    padding: const EdgeInsets.all(20),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        _buildGreeting(context, user?.displayName),
+                        const SizedBox(height: 20),
+                        _buildStatsSummary(context, taskState),
+                        const SizedBox(height: 24),
+                        if (taskState.overdueTasks.isNotEmpty) ...[
+                          _buildSectionHeader(
+                            context,
+                            'Overdue',
+                            Icons.warning_amber_rounded,
+                            color: AppTheme.priorityHigh,
+                            count: taskState.overdueTasks.length,
+                          ),
+                          const SizedBox(height: 12),
+                          ...taskState.overdueTasks.take(3).map((t) => Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: TaskCard(task: t),
+                              )),
+                          const SizedBox(height: 20),
+                        ],
                         _buildSectionHeader(
                           context,
-                          'Overdue',
-                          Icons.warning_amber_rounded,
-                          color: AppTheme.priorityHigh,
-                          count: taskState.overdueTasks.length,
+                          "Today's Tasks",
+                          Icons.today_outlined,
+                          count: taskState.todayTasks.length,
                         ),
                         const SizedBox(height: 12),
-                        ...taskState.overdueTasks
-                            .take(3)
-                            .map((t) => Padding(
-                                  padding:
-                                      const EdgeInsets.only(bottom: 10),
-                                  child: TaskCard(task: t),
-                                )),
-                        const SizedBox(height: 20),
-                      ],
-                      _buildSectionHeader(
-                        context,
-                        "Today's Tasks",
-                        Icons.today_outlined,
-                        count: taskState.todayTasks.length,
-                      ),
-                      const SizedBox(height: 12),
-                      if (taskState.todayTasks.isEmpty)
-                        _buildEmptyDay(context)
-                      else
-                        ...taskState.todayTasks.map((t) => Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: TaskCard(task: t),
-                            )),
-                      const SizedBox(height: 80),
-                    ]),
+                        if (taskState.todayTasks.isEmpty)
+                          _buildEmptyDay(context)
+                        else
+                          ...taskState.todayTasks.map((t) => Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: TaskCard(task: t),
+                              )),
+                        const SizedBox(height: 80),
+                      ]),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
-      );
+                ],
+              ),
+            );
+          },
+        );
       },
     );
   }
@@ -105,8 +100,7 @@ class DashboardPage extends StatelessWidget {
       ),
       actions: [
         IconButton(
-          onPressed: () =>
-              context.read<ThemeCubit>().toggleTheme(),
+          onPressed: () => context.read<ThemeCubit>().toggleTheme(),
           icon: const Icon(Icons.brightness_6_outlined),
           tooltip: 'Toggle theme',
         ),
@@ -122,8 +116,7 @@ class DashboardPage extends StatelessWidget {
         : hour < 18
             ? 'Good afternoon'
             : 'Good evening';
-    final dateStr =
-        DateFormat('EEEE, MMMM d').format(DateTime.now());
+    final dateStr = DateFormat('EEEE, MMMM d').format(DateTime.now());
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,14 +130,11 @@ class DashboardPage extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(dateStr,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withOpacity(0.6))),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.6))),
       ],
     ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1);
   }
@@ -173,8 +163,7 @@ class DashboardPage extends StatelessWidget {
         Expanded(
           child: StatsSummaryCard(
             title: 'Progress',
-            value:
-                '${(state.completionRate * 100).toStringAsFixed(0)}%',
+            value: '${(state.completionRate * 100).toStringAsFixed(0)}%',
             icon: Icons.trending_up_outlined,
             color: AppTheme.priorityMedium,
           ),
@@ -203,12 +192,9 @@ class DashboardPage extends StatelessWidget {
         if (count != null) ...[
           const Spacer(),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
             decoration: BoxDecoration(
-              color: Theme.of(context)
-                  .colorScheme
-                  .primaryContainer,
+              color: Theme.of(context).colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -234,10 +220,8 @@ class DashboardPage extends StatelessWidget {
         children: [
           Icon(Icons.celebration_outlined,
               size: 48,
-              color: Theme.of(context)
-                  .colorScheme
-                  .primary
-                  .withOpacity(0.6)),
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.6)),
           const SizedBox(height: 12),
           Text('All clear for today!',
               style: Theme.of(context).textTheme.titleMedium),
@@ -248,7 +232,7 @@ class DashboardPage extends StatelessWidget {
                   color: Theme.of(context)
                       .colorScheme
                       .onSurface
-                      .withOpacity(0.6),
+                      .withValues(alpha: 0.6),
                 ),
           ),
         ],

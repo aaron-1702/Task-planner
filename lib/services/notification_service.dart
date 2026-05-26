@@ -86,7 +86,7 @@ class NotificationService {
           ? 'Due in $minutesBefore minutes'
           : 'Deadline approaching',
       tz.TZDateTime.from(scheduledTime, tz.local),
-      NotificationDetails(
+      const NotificationDetails(
         android: AndroidNotificationDetails(
           AppConstants.notificationChannelId,
           AppConstants.notificationChannelName,
@@ -95,13 +95,13 @@ class NotificationService {
           priority: Priority.high,
           color: Color(0xFF6366F1),
           actions: [
-            const AndroidNotificationAction('done', 'Mark Done',
+            AndroidNotificationAction('done', 'Mark Done',
                 showsUserInterface: false),
-            const AndroidNotificationAction('snooze', 'Snooze 15min',
+            AndroidNotificationAction('snooze', 'Snooze 15min',
                 showsUserInterface: false),
           ],
         ),
-        iOS: const DarwinNotificationDetails(
+        iOS: DarwinNotificationDetails(
           presentAlert: true,
           presentBadge: true,
           presentSound: true,
@@ -129,8 +129,7 @@ class NotificationService {
     final minutes = event.reminderMinutes;
     if (minutes == null) return;
 
-    final scheduledTime =
-        event.startDate.subtract(Duration(minutes: minutes));
+    final scheduledTime = event.startDate.subtract(Duration(minutes: minutes));
     if (scheduledTime.isBefore(DateTime.now())) return;
 
     final isBirthday = event.type == CalendarEventType.birthday;
@@ -141,9 +140,7 @@ class NotificationService {
       isBirthday
           ? '🎂 Birthday: ${event.title}'
           : '📅 Event soon: ${event.title}',
-      minutes == 0
-          ? 'Starting now'
-          : 'In $minutes minutes',
+      minutes == 0 ? 'Starting now' : 'In $minutes minutes',
       tz.TZDateTime.from(scheduledTime, tz.local),
       NotificationDetails(
         android: AndroidNotificationDetails(
@@ -152,9 +149,7 @@ class NotificationService {
           channelDescription: AppConstants.notificationChannelDesc,
           importance: Importance.high,
           priority: Priority.high,
-          color: isBirthday
-              ? const Color(0xFFEC4899)
-              : const Color(0xFF14B8A6),
+          color: isBirthday ? const Color(0xFFEC4899) : const Color(0xFF14B8A6),
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: true,

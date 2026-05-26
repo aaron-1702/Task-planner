@@ -31,8 +31,8 @@ class TaskDetailPage extends StatelessWidget {
                 actions: [
                   IconButton(
                     icon: const Icon(Icons.edit_outlined),
-                    onPressed: () => context.pushNamed('task-edit',
-                        pathParameters: {'id': taskId}),
+                    onPressed: () => context
+                        .pushNamed('task-edit', pathParameters: {'id': taskId}),
                   ),
                   PopupMenuButton(
                     itemBuilder: (_) => [
@@ -45,24 +45,20 @@ class TaskDetailPage extends StatelessWidget {
                           context: context,
                           builder: (ctx) => AlertDialog(
                             title: const Text('Delete Task'),
-                            content: const Text(
-                                'This action cannot be undone.'),
+                            content:
+                                const Text('This action cannot be undone.'),
                             actions: [
                               TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(ctx, false),
+                                  onPressed: () => Navigator.pop(ctx, false),
                                   child: const Text('Cancel')),
                               FilledButton(
-                                  onPressed: () =>
-                                      Navigator.pop(ctx, true),
+                                  onPressed: () => Navigator.pop(ctx, true),
                                   child: const Text('Delete')),
                             ],
                           ),
                         );
                         if (confirm == true && context.mounted) {
-                          context
-                              .read<TaskBloc>()
-                              .add(TaskDeleted(taskId));
+                          context.read<TaskBloc>().add(TaskDeleted(taskId));
                           context.pop();
                         }
                       }
@@ -81,8 +77,7 @@ class TaskDetailPage extends StatelessWidget {
                       _Section(
                         title: 'Description',
                         child: Text(task.description!,
-                            style:
-                                Theme.of(context).textTheme.bodyMedium),
+                            style: Theme.of(context).textTheme.bodyMedium),
                       ),
                     if (task.subtasks.isNotEmpty)
                       _Section(
@@ -107,8 +102,7 @@ class TaskDetailPage extends StatelessWidget {
                     if (task.recurrenceRule != null)
                       _Section(
                         title: 'Recurrence',
-                        child: _RecurrenceInfo(
-                            rule: task.recurrenceRule!),
+                        child: _RecurrenceInfo(rule: task.recurrenceRule!),
                       ),
                     const SizedBox(height: 80),
                   ]),
@@ -135,11 +129,10 @@ class _StatusRow extends StatelessWidget {
         const Spacer(),
         if (task.deadline != null)
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: task.isOverdue
-                  ? AppTheme.priorityHigh.withOpacity(0.12)
+                  ? AppTheme.priorityHigh.withValues(alpha: 0.12)
                   : Theme.of(context).colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(20),
             ),
@@ -157,8 +150,7 @@ class _StatusRow extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  DateFormat('EEE, MMMd • HH:mm')
-                      .format(task.deadline!),
+                  DateFormat('EEE, MMMd • HH:mm').format(task.deadline!),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -184,8 +176,7 @@ class _StatusButton extends StatelessWidget {
     return SegmentedButton<TaskStatus>(
       segments: const [
         ButtonSegment(value: TaskStatus.open, label: Text('Open')),
-        ButtonSegment(
-            value: TaskStatus.inProgress, label: Text('In Progress')),
+        ButtonSegment(value: TaskStatus.inProgress, label: Text('In Progress')),
         ButtonSegment(value: TaskStatus.done, label: Text('Done')),
       ],
       selected: {task.status},
@@ -214,7 +205,7 @@ class _Section extends StatelessWidget {
                   color: Theme.of(context)
                       .colorScheme
                       .onSurface
-                      .withOpacity(0.6),
+                      .withValues(alpha: 0.6),
                   letterSpacing: 0.5,
                 ),
           ),
@@ -242,9 +233,7 @@ class _DetailGrid extends StatelessWidget {
             _DetailRow(
                 'Status', task.status.name.capitalize(), Icons.circle_outlined),
             if (task.estimatedMinutes != null)
-              _DetailRow(
-                  'Estimate',
-                  '${task.estimatedMinutes}m',
+              _DetailRow('Estimate', '${task.estimatedMinutes}m',
                   Icons.timer_outlined),
             if (task.pomodoroCount != null)
               _DetailRow('Pomodoros', '${task.pomodoroCount} 🍅',
@@ -272,15 +261,14 @@ class _DetailRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Icon(icon, size: 18,
-              color: Theme.of(context).colorScheme.primary),
+          Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 12),
           Text(label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context)
                         .colorScheme
                         .onSurface
-                        .withOpacity(0.7),
+                        .withValues(alpha: 0.7),
                   )),
           const Spacer(),
           Text(value,
@@ -386,7 +374,9 @@ class _SubtaskChecklist extends StatelessWidget {
           value: subtask.isDone,
           onChanged: (value) {
             final updated = task.subtasks.map((s) {
-              return s.id == subtask.id ? s.copyWith(isDone: value ?? false) : s;
+              return s.id == subtask.id
+                  ? s.copyWith(isDone: value ?? false)
+                  : s;
             }).toList();
             context.read<TaskBloc>().add(
                   TaskUpdated(task.copyWith(

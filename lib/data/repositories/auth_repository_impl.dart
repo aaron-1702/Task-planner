@@ -28,8 +28,8 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, AppUser>> signInWithEmail(
       String email, String password) async {
     try {
-      final response = await _client.auth.signInWithPassword(
-          email: email, password: password);
+      final response = await _client.auth
+          .signInWithPassword(email: email, password: password);
       final user = _mapUser(response.user);
       if (user == null) return const Left(AuthFailure('Sign in failed'));
       return Right(user);
@@ -116,7 +116,6 @@ class AuthRepositoryImpl implements AuthRepository {
         redirectTo: 'smart-task-planner://auth-callback',
       );
       // The session is handled via deep link / callback
-      final session = _client.auth.currentSession;
       final user = _mapUser(_client.auth.currentUser);
       if (user == null) {
         return const Left(AuthFailure('Microsoft sign-in failed'));
@@ -193,9 +192,7 @@ class AuthRepositoryImpl implements AuthRepository {
       displayName: user.userMetadata?['display_name'] as String? ??
           user.userMetadata?['full_name'] as String?,
       avatarUrl: user.userMetadata?['avatar_url'] as String?,
-      createdAt: user.createdAt != null
-          ? DateTime.parse(user.createdAt!)
-          : DateTime.now(),
+      createdAt: DateTime.parse(user.createdAt),
     );
   }
 }

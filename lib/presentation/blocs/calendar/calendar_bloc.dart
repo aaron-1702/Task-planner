@@ -36,8 +36,8 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       selectedDay: event.selectedDay,
       focusedDay: event.focusedDay,
     ));
-    final result = await _getTasksByDate(GetTasksByDateParams(
-        userId: event.userId, date: event.selectedDay));
+    final result = await _getTasksByDate(
+        GetTasksByDateParams(userId: event.userId, date: event.selectedDay));
     result.fold(
       (failure) => emit(state.copyWith(error: failure.message)),
       (tasks) => emit(state.copyWith(selectedDayTasks: tasks)),
@@ -46,9 +46,6 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
 
   Future<void> _onTasksRequested(
       CalendarTasksRequested event, Emitter<CalendarState> emit) async {
-    // Load tasks for the visible month range
-    final start = DateTime(event.month.year, event.month.month - 1, 1);
-    final end = DateTime(event.month.year, event.month.month + 2, 0);
     final result = await _getTasksByDate(
         GetTasksByDateParams(userId: event.userId, date: event.month));
     result.fold(
@@ -58,8 +55,8 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
         final map = <DateTime, List<Task>>{};
         for (final task in tasks) {
           if (task.deadline != null) {
-            final key = DateTime(task.deadline!.year, task.deadline!.month,
-                task.deadline!.day);
+            final key = DateTime(
+                task.deadline!.year, task.deadline!.month, task.deadline!.day);
             map[key] = [...(map[key] ?? []), task];
           }
         }

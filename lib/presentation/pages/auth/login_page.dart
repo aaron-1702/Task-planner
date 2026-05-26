@@ -107,7 +107,7 @@ class _LoginPageState extends State<LoginPage> {
                 color: Theme.of(context)
                     .colorScheme
                     .onSurface
-                    .withOpacity(0.6),
+                    .withValues(alpha: 0.6),
               ),
         ),
       ],
@@ -182,59 +182,6 @@ class _LoginPageState extends State<LoginPage> {
     ).animate().fadeIn(duration: 500.ms, delay: 100.ms);
   }
 
-  Widget _buildDivider(BuildContext context) {
-    return Row(
-      children: [
-        const Expanded(child: Divider()),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'or continue with',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withOpacity(0.5),
-                ),
-          ),
-        ),
-        const Expanded(child: Divider()),
-      ],
-    );
-  }
-
-  Widget _buildSocialButtons(BuildContext context, AuthState state) {
-    return Column(
-      children: [
-        OutlinedButton.icon(
-          onPressed: state is AuthLoading
-              ? null
-              : () => context
-                  .read<AuthBloc>()
-                  .add(AuthSignInWithGoogle()),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 50),
-          ),
-          icon: const Icon(Icons.g_mobiledata, size: 24),
-          label: const Text('Continue with Google'),
-        ),
-        const SizedBox(height: 10),
-        OutlinedButton.icon(
-          onPressed: state is AuthLoading
-              ? null
-              : () => context
-                  .read<AuthBloc>()
-                  .add(AuthSignInWithMicrosoft()),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 50),
-          ),
-          icon: const Icon(Icons.window, size: 20),
-          label: const Text('Continue with Microsoft'),
-        ),
-      ],
-    ).animate().fadeIn(duration: 500.ms, delay: 200.ms);
-  }
-
   Widget _buildSignUpLink(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -280,8 +227,8 @@ class _LoginPageState extends State<LoginPage> {
             onPressed: () {
               // TODO: wire to auth repo reset password
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text('Password reset email sent')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Password reset email sent')));
             },
             child: const Text('Send'),
           ),

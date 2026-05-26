@@ -15,7 +15,6 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
   final CreateTaskUseCase _createTask;
   final UpdateTaskUseCase _updateTask;
   final DeleteTaskUseCase _deleteTask;
-  final GetTasksUseCase _getTasks;
   final WatchTasksUseCase _watchTasks;
 
   StreamSubscription<List<Task>>? _tasksSubscription;
@@ -25,7 +24,6 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     this._createTask,
     this._updateTask,
     this._deleteTask,
-    this._getTasks,
     this._watchTasks,
   ) : super(const TaskState()) {
     on<TaskSubscriptionRequested>(_onSubscriptionRequested);
@@ -54,8 +52,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     );
   }
 
-  Future<void> _onCreated(
-      TaskCreated event, Emitter<TaskState> emit) async {
+  Future<void> _onCreated(TaskCreated event, Emitter<TaskState> emit) async {
     final now = DateTime.now().toUtc();
     final task = Task(
       id: _uuid.v4(),
@@ -81,18 +78,16 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     );
   }
 
-  Future<void> _onUpdated(
-      TaskUpdated event, Emitter<TaskState> emit) async {
-    final result =
-        await _updateTask(event.task.copyWith(updatedAt: DateTime.now().toUtc()));
+  Future<void> _onUpdated(TaskUpdated event, Emitter<TaskState> emit) async {
+    final result = await _updateTask(
+        event.task.copyWith(updatedAt: DateTime.now().toUtc()));
     result.fold(
       (failure) => emit(state.copyWith(error: failure.message)),
       (_) => null,
     );
   }
 
-  Future<void> _onDeleted(
-      TaskDeleted event, Emitter<TaskState> emit) async {
+  Future<void> _onDeleted(TaskDeleted event, Emitter<TaskState> emit) async {
     final result = await _deleteTask(event.taskId);
     result.fold(
       (failure) => emit(state.copyWith(error: failure.message)),
@@ -102,9 +97,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
 
   Future<void> _onStatusChanged(
       TaskStatusChanged event, Emitter<TaskState> emit) async {
-    final task = state.tasks
-        .firstWhere((t) => t.id == event.taskId)
-        .copyWith(
+    final task = state.tasks.firstWhere((t) => t.id == event.taskId).copyWith(
           status: event.newStatus,
           updatedAt: DateTime.now().toUtc(),
         );
@@ -115,8 +108,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     );
   }
 
-  void _onFilterChanged(
-      TaskFilterChanged event, Emitter<TaskState> emit) {
+  void _onFilterChanged(TaskFilterChanged event, Emitter<TaskState> emit) {
     emit(state.copyWith(filter: event.filter));
   }
 
@@ -131,8 +123,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
       tasks = tasks.where((t) => t.priority == filter.priority).toList();
     }
     if (filter.categoryId != null) {
-      tasks =
-          tasks.where((t) => t.categoryId == filter.categoryId).toList();
+      tasks = tasks.where((t) => t.categoryId == filter.categoryId).toList();
     }
     if (filter.query != null && filter.query!.isNotEmpty) {
       final q = filter.query!.toLowerCase();

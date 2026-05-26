@@ -26,8 +26,17 @@ class _MainShellState extends State<MainShell> {
   static const _destinations = [
     (label: 'Dashboard', icon: Icons.dashboard_outlined, route: '/dashboard'),
     (label: 'Tasks', icon: Icons.task_alt_outlined, route: '/tasks'),
-    (label: 'Calendar', icon: Icons.calendar_month_outlined, route: '/calendar'),
+    (
+      label: 'Calendar',
+      icon: Icons.calendar_month_outlined,
+      route: '/calendar'
+    ),
     (label: 'Work Log', icon: Icons.access_time_outlined, route: '/worklog'),
+    (
+      label: 'Learning Log',
+      icon: Icons.menu_book_outlined,
+      route: '/learninglog'
+    ),
     (label: 'Stats', icon: Icons.bar_chart_outlined, route: '/stats'),
     (label: 'Settings', icon: Icons.settings_outlined, route: '/settings'),
   ];
@@ -63,8 +72,7 @@ class _MainShellState extends State<MainShell> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final location = GoRouterState.of(context).matchedLocation;
-    final index = _destinations.indexWhere(
-        (d) => location.startsWith(d.route));
+    final index = _destinations.indexWhere((d) => location.startsWith(d.route));
     if (index != -1 && index != _selectedIndex) {
       setState(() => _selectedIndex = index);
     }

@@ -2,7 +2,6 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:injectable/injectable.dart';
-import 'dart:convert';
 
 part 'local_database.g.dart';
 
@@ -21,13 +20,11 @@ class TasksTable extends Table {
   TextColumn get recurrenceRule => text().nullable()(); // JSON
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
-  BoolColumn get isDeleted =>
-      boolean().withDefault(const Constant(false))();
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
   IntColumn get estimatedMinutes => integer().nullable()();
   IntColumn get pomodoroCount => integer().nullable()();
   TextColumn get subtasks => text().withDefault(const Constant('[]'))(); // JSON
-  BoolColumn get isSynced =>
-      boolean().withDefault(const Constant(false))();
+  BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -40,8 +37,7 @@ class CategoriesTable extends Table {
   IntColumn get colorValue => integer()();
   TextColumn get icon => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
-  BoolColumn get isSynced =>
-      boolean().withDefault(const Constant(false))();
+  BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -89,10 +85,26 @@ class WorkEntriesTable extends Table {
   TextColumn get note => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
-  BoolColumn get isDeleted =>
-      boolean().withDefault(const Constant(false))();
-  BoolColumn get isSynced =>
-      boolean().withDefault(const Constant(false))();
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+  BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class LearningEntriesTable extends Table {
+  TextColumn get id => text()();
+  TextColumn get userId => text()();
+  DateTimeColumn get date => dateTime()();
+  DateTimeColumn get startTime => dateTime()();
+  DateTimeColumn get endTime => dateTime()();
+  IntColumn get breakMinutes => integer().withDefault(const Constant(0))();
+  TextColumn get topic => text()();
+  TextColumn get note => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+  BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -100,13 +112,20 @@ class WorkEntriesTable extends Table {
 
 // ─── Database ─────────────────────────────────────────────────────────────────
 
-@DriftDatabase(tables: [TasksTable, CategoriesTable, UserProfilesTable, CalendarEventsTable, WorkEntriesTable])
+@DriftDatabase(tables: [
+  TasksTable,
+  CategoriesTable,
+  UserProfilesTable,
+  CalendarEventsTable,
+  WorkEntriesTable,
+  LearningEntriesTable,
+])
 @singleton
 class LocalDatabase extends _$LocalDatabase {
   LocalDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -120,6 +139,9 @@ class LocalDatabase extends _$LocalDatabase {
           }
           if (from < 4) {
             await m.createTable(workEntriesTable);
+          }
+          if (from < 5) {
+            await m.createTable(learningEntriesTable);
           }
         },
       );
@@ -147,8 +169,7 @@ class LocalDatabase extends _$LocalDatabase {
         .watch();
   }
 
-  Stream<List<TasksTableData>> watchTasksByDate(
-      String userId, DateTime date) {
+  Stream<List<TasksTableData>> watchTasksByDate(String userId, DateTime date) {
     final dayStart = DateTime(date.year, date.month, date.day);
     final dayEnd = dayStart.add(const Duration(days: 1));
     return (select(tasksTable)
@@ -165,9 +186,7 @@ class LocalDatabase extends _$LocalDatabase {
   }
 
   Future<List<TasksTableData>> getUnsyncedTasks() {
-    return (select(tasksTable)
-          ..where((t) => t.isSynced.equals(false)))
-        .get();
+    return (select(tasksTable)..where((t) => t.isSynced.equals(false))).get();
   }
 
   Future<void> upsertTask(TasksTableData task) async {
@@ -210,20 +229,17 @@ class LocalDatabase extends _$LocalDatabase {
   }
 
   Future<void> deleteEventById(String eventId) async {
-    await (delete(calendarEventsTable)
-          ..where((e) => e.id.equals(eventId)))
+    await (delete(calendarEventsTable)..where((e) => e.id.equals(eventId)))
         .go();
   }
 
   Future<List<CalendarEventsTableData>> getUnsyncedEvents() {
-    return (select(calendarEventsTable)
-          ..where((e) => e.isSynced.equals(false)))
+    return (select(calendarEventsTable)..where((e) => e.isSynced.equals(false)))
         .get();
   }
 
   Future<void> markEventSynced(String eventId) async {
-    await (update(calendarEventsTable)
-          ..where((e) => e.id.equals(eventId)))
+    await (update(calendarEventsTable)..where((e) => e.id.equals(eventId)))
         .write(const CalendarEventsTableCompanion(isSynced: Value(true)));
   }
 
@@ -258,8 +274,7 @@ class LocalDatabase extends _$LocalDatabase {
           ..orderBy([(e) => OrderingTerm.desc(e.date)]))
         .watch()
         .map((rows) => rows
-            .where((e) =>
-                !e.date.isBefore(start) && !e.date.isAfter(end))
+            .where((e) => !e.date.isBefore(start) && !e.date.isAfter(end))
             .toList());
   }
 
@@ -274,8 +289,7 @@ class LocalDatabase extends _$LocalDatabase {
   }
 
   Future<void> markWorkEntrySynced(String entryId) async {
-    await (update(workEntriesTable)
-          ..where((e) => e.id.equals(entryId)))
+    await (update(workEntriesTable)..where((e) => e.id.equals(entryId)))
         .write(const WorkEntriesTableCompanion(isSynced: Value(true)));
   }
 
@@ -284,7 +298,56 @@ class LocalDatabase extends _$LocalDatabase {
   }
 
   Future<List<WorkEntriesTableData>> getUnsyncedWorkEntries() {
-    return (select(workEntriesTable)
+    return (select(workEntriesTable)..where((e) => e.isSynced.equals(false)))
+        .get();
+  }
+
+  // ── LearningEntry Queries ────────────────────────────────────────────────
+
+  Stream<List<LearningEntriesTableData>> watchLearningEntriesByUser(
+      String userId) {
+    return (select(learningEntriesTable)
+          ..where((e) => Expression.and(
+              [e.userId.equals(userId), e.isDeleted.equals(false)]))
+          ..orderBy([(e) => OrderingTerm.desc(e.date)]))
+        .watch();
+  }
+
+  Stream<List<LearningEntriesTableData>> watchLearningEntriesInRange(
+      String userId, DateTime start, DateTime end) {
+    return (select(learningEntriesTable)
+          ..where((e) => Expression.and(
+              [e.userId.equals(userId), e.isDeleted.equals(false)]))
+          ..orderBy([(e) => OrderingTerm.desc(e.date)]))
+        .watch()
+        .map((rows) => rows
+            .where((e) => !e.date.isBefore(start) && !e.date.isAfter(end))
+            .toList());
+  }
+
+  Future<void> upsertLearningEntry(LearningEntriesTableData entry) async {
+    await into(learningEntriesTable).insertOnConflictUpdate(entry);
+  }
+
+  Future<void> upsertLearningEntries(
+      List<LearningEntriesTableData> entries) async {
+    await batch((b) {
+      b.insertAllOnConflictUpdate(learningEntriesTable, entries);
+    });
+  }
+
+  Future<void> markLearningEntrySynced(String entryId) async {
+    await (update(learningEntriesTable)..where((e) => e.id.equals(entryId)))
+        .write(const LearningEntriesTableCompanion(isSynced: Value(true)));
+  }
+
+  Future<void> deleteLearningEntryById(String entryId) async {
+    await (delete(learningEntriesTable)..where((e) => e.id.equals(entryId)))
+        .go();
+  }
+
+  Future<List<LearningEntriesTableData>> getUnsyncedLearningEntries() {
+    return (select(learningEntriesTable)
           ..where((e) => e.isSynced.equals(false)))
         .get();
   }

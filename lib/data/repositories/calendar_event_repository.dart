@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:drift/drift.dart' hide DataClass;
 import 'package:injectable/injectable.dart';
 import 'package:uuid/uuid.dart';
 
@@ -77,8 +76,8 @@ class CalendarEventRepository {
 
   // ── Delete ─────────────────────────────────────────────────────────────────
 
-  Future<Either<Failure, Unit>> deleteEvent(String eventId,
-      String userId) async {
+  Future<Either<Failure, Unit>> deleteEvent(
+      String eventId, String userId) async {
     try {
       await _local.deleteEventById(eventId);
       try {

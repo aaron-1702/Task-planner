@@ -41,8 +41,8 @@ class _TaskFormPageState extends State<TaskFormPage> {
         value: _existingTask?.title ?? '',
         validators: [Validators.required, Validators.minLength(1)],
       ),
-      'description': FormControl<String>(
-          value: _existingTask?.description ?? ''),
+      'description':
+          FormControl<String>(value: _existingTask?.description ?? ''),
       'deadline': FormControl<DateTime>(
         value: _existingTask?.deadline ?? widget.initialDate,
       ),
@@ -55,10 +55,10 @@ class _TaskFormPageState extends State<TaskFormPage> {
       'tags': FormControl<String>(
         value: _existingTask?.tags.join(', ') ?? '',
       ),
-      'estimatedMinutes': FormControl<int>(
-          value: _existingTask?.estimatedMinutes),
-      'enableRecurrence': FormControl<bool>(
-          value: _existingTask?.recurrenceRule != null),
+      'estimatedMinutes':
+          FormControl<int>(value: _existingTask?.estimatedMinutes),
+      'enableRecurrence':
+          FormControl<bool>(value: _existingTask?.recurrenceRule != null),
       'recurrenceType': FormControl<RecurrenceType>(
         value: _existingTask?.recurrenceRule?.type ?? RecurrenceType.daily,
       ),
@@ -197,8 +197,7 @@ class _TaskFormPageState extends State<TaskFormPage> {
         .map((t) => t.trim())
         .where((t) => t.isNotEmpty)
         .toList();
-    final estimatedMinutes =
-        _form.control('estimatedMinutes').value as int?;
+    final estimatedMinutes = _form.control('estimatedMinutes').value as int?;
     final enableRecurrence =
         _form.control('enableRecurrence').value as bool? ?? false;
     final recurrenceType =
@@ -261,8 +260,7 @@ class _DeadlinePicker extends StatelessWidget {
           leading: const Icon(Icons.calendar_month_outlined),
           title: const Text('Deadline'),
           subtitle: deadline != null
-              ? Text(DateFormat('EEE, MMMM d, yyyy – HH:mm')
-                  .format(deadline))
+              ? Text(DateFormat('EEE, MMMM d, yyyy – HH:mm').format(deadline))
               : const Text('No deadline set'),
           trailing: deadline != null
               ? IconButton(
@@ -288,7 +286,10 @@ class _DeadlinePicker extends StatelessWidget {
           },
           shape: RoundedRectangleBorder(
             side: BorderSide(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
+                color: Theme.of(context)
+                    .colorScheme
+                    .outline
+                    .withValues(alpha: 0.5)),
             borderRadius: BorderRadius.circular(12),
           ),
         );
@@ -420,7 +421,8 @@ class _SubtasksEditorState extends State<_SubtasksEditor> {
     if (text.isEmpty) return;
     final updated = [
       ...widget.subtasks,
-      Subtask(id: DateTime.now().millisecondsSinceEpoch.toString(), title: text),
+      Subtask(
+          id: DateTime.now().millisecondsSinceEpoch.toString(), title: text),
     ];
     widget.onChanged(updated);
     _controller.clear();
@@ -445,10 +447,11 @@ class _SubtasksEditorState extends State<_SubtasksEditor> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Subtasks', style: theme.textTheme.titleSmall?.copyWith(
-          color: colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.w600,
-        )),
+        Text('Subtasks',
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            )),
         const SizedBox(height: 8),
         ...widget.subtasks.asMap().entries.map((e) => CheckboxListTile(
               value: e.value.isDone,

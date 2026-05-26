@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 
 import '../../domain/entities/task.dart';
 
@@ -39,10 +38,9 @@ class TaskModel extends Task {
           : const [],
       categoryId: json['category_id'] as String?,
       recurrenceRule: json['recurrence_rule'] != null
-          ? RecurrenceRuleModel.fromJson(
-              json['recurrence_rule'] is String
-                  ? jsonDecode(json['recurrence_rule'] as String)
-                  : json['recurrence_rule'] as Map<String, dynamic>)
+          ? RecurrenceRuleModel.fromJson(json['recurrence_rule'] is String
+              ? jsonDecode(json['recurrence_rule'] as String)
+              : json['recurrence_rule'] as Map<String, dynamic>)
           : null,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
@@ -51,8 +49,8 @@ class TaskModel extends Task {
       pomodoroCount: json['pomodoro_count'] as int?,
       subtasks: json['subtasks'] != null
           ? (json['subtasks'] is String
-              ? (jsonDecode(json['subtasks'] as String) as List)
-              : (json['subtasks'] as List))
+                  ? (jsonDecode(json['subtasks'] as String) as List)
+                  : (json['subtasks'] as List))
               .map((e) => Subtask(
                     id: e['id'] as String,
                     title: e['title'] as String,

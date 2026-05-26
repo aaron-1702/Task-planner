@@ -47,9 +47,7 @@ class _EventFormPageState extends State<EventFormPage> {
     _type = _existing?.type ?? widget.initialType ?? CalendarEventType.event;
     _titleCtrl = TextEditingController(text: _existing?.title ?? '');
     _descCtrl = TextEditingController(text: _existing?.description ?? '');
-    _startDate = _existing?.startDate ??
-        widget.initialDate ??
-        DateTime.now();
+    _startDate = _existing?.startDate ?? widget.initialDate ?? DateTime.now();
     _endDate = _existing?.endDate;
     _recurrence = _existing?.recurrence ??
         (_type == CalendarEventType.birthday
@@ -95,18 +93,17 @@ class _EventFormPageState extends State<EventFormPage> {
                       ),
                       FilledButton(
                         onPressed: () => Navigator.pop(ctx, true),
-                        style: FilledButton.styleFrom(
-                            backgroundColor: Colors.red),
+                        style:
+                            FilledButton.styleFrom(backgroundColor: Colors.red),
                         child: const Text('Delete'),
                       ),
                     ],
                   ),
                 );
-                if (confirm == true && mounted) {
+                if (confirm == true && context.mounted) {
                   final authState = context.read<AuthBloc>().state;
-                  final userId = authState is AuthAuthenticated
-                      ? authState.user.id
-                      : '';
+                  final userId =
+                      authState is AuthAuthenticated ? authState.user.id : '';
                   context.read<CalendarEventBloc>().add(
                         CalendarEventDeleted(_existing!.id, userId),
                       );
@@ -240,18 +237,15 @@ class _EventFormPageState extends State<EventFormPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final authState = context.read<AuthBloc>().state;
-    final userId = authState is AuthAuthenticated
-        ? authState.user.id
-        : 'local-user';
+    final userId =
+        authState is AuthAuthenticated ? authState.user.id : 'local-user';
 
     final now = DateTime.now().toUtc();
     final event = CalendarEvent(
       id: _existing?.id ?? '',
       userId: userId,
       title: _titleCtrl.text.trim(),
-      description: _descCtrl.text.trim().isEmpty
-          ? null
-          : _descCtrl.text.trim(),
+      description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
       startDate: _startDate,
       endDate: _endDate,
       type: _type,
@@ -334,16 +328,16 @@ class _TypeChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? color : color.withOpacity(0.1),
+          color: selected ? color : color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-              color: selected ? color : color.withOpacity(0.3), width: 1.5),
+              color: selected ? color : color.withValues(alpha: 0.3),
+              width: 1.5),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 18,
-                color: selected ? Colors.white : color),
+            Icon(icon, size: 18, color: selected ? Colors.white : color),
             const SizedBox(width: 6),
             Text(label,
                 style: TextStyle(
@@ -407,16 +401,16 @@ class _DateTimeTile extends StatelessWidget {
         }
         final time = await showTimePicker(
           context: context,
-          initialTime:
-              TimeOfDay.fromDateTime(value ?? DateTime.now()),
+          initialTime: TimeOfDay.fromDateTime(value ?? DateTime.now()),
         );
         if (time == null) return;
-        onChanged(DateTime(
-            date.year, date.month, date.day, time.hour, time.minute));
+        onChanged(
+            DateTime(date.year, date.month, date.day, time.hour, time.minute));
       },
       shape: RoundedRectangleBorder(
         side: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
+            color:
+                Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(12),
       ),
     );
@@ -442,7 +436,7 @@ class _RecurrenceTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<EventRecurrence>(
-      value: value,
+      initialValue: value,
       decoration: const InputDecoration(
         labelText: 'Repeat',
         prefixIcon: Icon(Icons.repeat),
@@ -481,7 +475,7 @@ class _ReminderTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<int?>(
-      value: value,
+      initialValue: value,
       decoration: const InputDecoration(
         labelText: 'Reminder',
         prefixIcon: Icon(Icons.notifications_outlined),

@@ -25,7 +25,9 @@ class TaskFilter extends Equatable {
   }
 
   bool get isEmpty =>
-      status == null && priority == null && categoryId == null &&
+      status == null &&
+      priority == null &&
+      categoryId == null &&
       (query == null || query!.isEmpty);
 
   @override
@@ -46,10 +48,9 @@ class TaskState extends Equatable {
   });
 
   List<Task> get todayTasks {
-    final now = DateTime.now();
     return tasks
-        .where((t) =>
-            t.isDueToday && t.status != TaskStatus.done && !t.isDeleted)
+        .where(
+            (t) => t.isDueToday && t.status != TaskStatus.done && !t.isDeleted)
         .toList()
       ..sort((a, b) {
         // Sort by priority desc, then by deadline asc
@@ -66,8 +67,8 @@ class TaskState extends Equatable {
   List<Task> get overdueTasks => tasks
       .where((t) => t.isOverdue && !t.isDeleted)
       .toList()
-    ..sort((a, b) => (a.deadline ?? DateTime.now())
-        .compareTo(b.deadline ?? DateTime.now()));
+    ..sort((a, b) =>
+        (a.deadline ?? DateTime.now()).compareTo(b.deadline ?? DateTime.now()));
 
   int get completedCount =>
       tasks.where((t) => t.status == TaskStatus.done).length;

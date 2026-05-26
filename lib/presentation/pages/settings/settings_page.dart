@@ -1,11 +1,10 @@
 import 'dart:convert';
-// ignore: avoid_web_libraries_in_flutter
+// ignore: avoid_web_libraries_in_flutter, deprecated_member_use
 import 'dart:html' as html;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -30,7 +29,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _syncing = false;
 
   static const _keyDeadline = 'notif_deadline_reminders';
-  static const _keyDigest   = 'notif_daily_digest';
+  static const _keyDigest = 'notif_daily_digest';
 
   @override
   void initState() {
@@ -42,7 +41,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _deadlineReminders = prefs.getBool(_keyDeadline) ?? true;
-      _dailyDigest       = prefs.getBool(_keyDigest)   ?? false;
+      _dailyDigest = prefs.getBool(_keyDigest) ?? false;
     });
   }
 
@@ -52,8 +51,9 @@ class _SettingsPageState extends State<SettingsPage> {
       if (permission != 'granted') {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text(
-              'Browser notification permission denied. Enable in browser settings.')),
+            const SnackBar(
+                content: Text(
+                    'Browser notification permission denied. Enable in browser settings.')),
           );
         }
         return;
@@ -70,15 +70,19 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() => _dailyDigest = value);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(value
-          ? 'Daily Digest enabled – you will be reminded each morning.'
-          : 'Daily Digest disabled.')),
+        SnackBar(
+            content: Text(value
+                ? 'Daily Digest enabled – you will be reminded each morning.'
+                : 'Daily Digest disabled.')),
       );
     }
   }
 
   void _exportCsv(BuildContext context) {
-    final tasks = context.read<TaskBloc>().state.tasks
+    final tasks = context
+        .read<TaskBloc>()
+        .state
+        .tasks
         .where((t) => !t.isDeleted)
         .toList();
 
@@ -95,20 +99,24 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (kIsWeb) {
       final bytes = utf8.encode(buf.toString());
-      final blob  = html.Blob([bytes], 'text/csv');
-      final url   = html.Url.createObjectUrlFromBlob(blob);
+      final blob = html.Blob([bytes], 'text/csv');
+      final url = html.Url.createObjectUrlFromBlob(blob);
       html.AnchorElement(href: url)
-        ..setAttribute('download', 'tasks_${DateFormat('yyyyMMdd').format(DateTime.now())}.csv')
+        ..setAttribute('download',
+            'tasks_${DateFormat('yyyyMMdd').format(DateTime.now())}.csv')
         ..click();
       html.Url.revokeObjectUrl(url);
     }
     Navigator.pop(context);
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text('${tasks.length} tasks exported as CSV')));
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${tasks.length} tasks exported as CSV')));
   }
 
   Future<void> _exportPdf(BuildContext context) async {
-    final tasks = context.read<TaskBloc>().state.tasks
+    final tasks = context
+        .read<TaskBloc>()
+        .state
+        .tasks
         .where((t) => !t.isDeleted)
         .toList();
 
@@ -121,16 +129,19 @@ class _SettingsPageState extends State<SettingsPage> {
     const brandColor = PdfColor(0.247, 0.318, 0.710);
 
     // ── Stats ────────────────────────────────────────────────────────────
-    final total   = tasks.length;
-    final done    = tasks.where((t) {
+    final total = tasks.length;
+    final done = tasks.where((t) {
       final s = t.status.name.toLowerCase();
       return s == 'completed' || s == 'done';
     }).length;
-    final high    = tasks.where((t) => t.priority.name.toLowerCase() == 'high').length;
-    final overdue = tasks.where((t) =>
-        t.deadline != null &&
-        t.deadline!.isBefore(now) &&
-        t.status.name.toLowerCase() != 'completed').length;
+    final high =
+        tasks.where((t) => t.priority.name.toLowerCase() == 'high').length;
+    final overdue = tasks
+        .where((t) =>
+            t.deadline != null &&
+            t.deadline!.isBefore(now) &&
+            t.status.name.toLowerCase() != 'completed')
+        .length;
 
     // ── Stat card widget ─────────────────────────────────────────────────
     pw.Widget statCard(String label, String value, PdfColor color) =>
@@ -151,7 +162,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         color: color)),
                 pw.SizedBox(height: 3),
                 pw.Text(label,
-                    style: pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+                    style: const pw.TextStyle(
+                        fontSize: 8, color: PdfColors.grey600)),
               ],
             ),
           ),
@@ -168,9 +180,9 @@ class _SettingsPageState extends State<SettingsPage> {
       header: (ctx) => pw.Container(
         margin: const pw.EdgeInsets.only(bottom: 20),
         padding: const pw.EdgeInsets.fromLTRB(16, 12, 16, 12),
-        decoration: pw.BoxDecoration(
+        decoration: const pw.BoxDecoration(
           color: brandColor,
-          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+          borderRadius: pw.BorderRadius.all(pw.Radius.circular(8)),
         ),
         child: pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -185,11 +197,12 @@ class _SettingsPageState extends State<SettingsPage> {
                         color: PdfColors.white)),
                 pw.SizedBox(height: 2),
                 pw.Text('Task Export Report',
-                    style: pw.TextStyle(fontSize: 10, color: PdfColors.white)),
+                    style: const pw.TextStyle(
+                        fontSize: 10, color: PdfColors.white)),
               ],
             ),
             pw.Text(fmtFull.format(now),
-                style: pw.TextStyle(fontSize: 8, color: PdfColors.white)),
+                style: const pw.TextStyle(fontSize: 8, color: PdfColors.white)),
           ],
         ),
       ),
@@ -206,9 +219,11 @@ class _SettingsPageState extends State<SettingsPage> {
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
             pw.Text('Smart Task Planner',
-                style: pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+                style:
+                    const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
             pw.Text('Page ${ctx.pageNumber} of ${ctx.pagesCount}',
-                style: pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+                style:
+                    const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
           ],
         ),
       ),
@@ -216,13 +231,13 @@ class _SettingsPageState extends State<SettingsPage> {
       build: (ctx) => [
         // ── Stats row ──────────────────────────────────────────────────
         pw.Row(children: [
-          statCard('Total Tasks',   '$total',   brandColor),
+          statCard('Total Tasks', '$total', brandColor),
           pw.SizedBox(width: 8),
-          statCard('Completed',     '$done',    PdfColors.green700),
+          statCard('Completed', '$done', PdfColors.green700),
           pw.SizedBox(width: 8),
-          statCard('High Priority', '$high',    PdfColors.red700),
+          statCard('High Priority', '$high', PdfColors.red700),
           pw.SizedBox(width: 8),
-          statCard('Overdue',       '$overdue', PdfColors.orange),
+          statCard('Overdue', '$overdue', PdfColors.orange),
         ]),
         pw.SizedBox(height: 20),
 
@@ -241,22 +256,26 @@ class _SettingsPageState extends State<SettingsPage> {
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.white,
               fontSize: 9),
-          headerDecoration: pw.BoxDecoration(color: brandColor),
+          headerDecoration: const pw.BoxDecoration(color: brandColor),
           oddRowDecoration:
               const pw.BoxDecoration(color: PdfColor(0.955, 0.957, 0.965)),
-          data: tasks.map((t) => [
-            t.title,
-            cap(t.priority.name),
-            cap(t.status.name),
-            t.deadline != null ? fmt.format(t.deadline!.toLocal()) : '–',
-          ]).toList(),
+          data: tasks
+              .map((t) => [
+                    t.title,
+                    cap(t.priority.name),
+                    cap(t.status.name),
+                    t.deadline != null
+                        ? fmt.format(t.deadline!.toLocal())
+                        : '–',
+                  ])
+              .toList(),
           columnWidths: {
             0: const pw.FlexColumnWidth(3),
             1: const pw.FlexColumnWidth(1),
             2: const pw.FlexColumnWidth(1.2),
             3: const pw.FlexColumnWidth(1.5),
           },
-          cellStyle: pw.TextStyle(fontSize: 9),
+          cellStyle: const pw.TextStyle(fontSize: 9),
           cellAlignments: {
             0: pw.Alignment.centerLeft,
             1: pw.Alignment.center,
@@ -272,10 +291,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (kIsWeb) {
       final blob = html.Blob([bytes], 'application/pdf');
-      final url  = html.Url.createObjectUrlFromBlob(blob);
+      final url = html.Url.createObjectUrlFromBlob(blob);
       html.AnchorElement(href: url)
-        ..setAttribute('download',
-            'tasks_${DateFormat('yyyyMMdd').format(now)}.pdf')
+        ..setAttribute(
+            'download', 'tasks_${DateFormat('yyyyMMdd').format(now)}.pdf')
         ..click();
       html.Url.revokeObjectUrl(url);
     }
@@ -293,7 +312,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if (authState is! AuthAuthenticated) return;
     setState(() => _syncing = true);
     await getIt<SyncService>().forceSync();
-    if (mounted) {
+    if (context.mounted) {
       setState(() => _syncing = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Sync completed')),
@@ -360,30 +379,40 @@ class _SettingsPageState extends State<SettingsPage> {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
           child: Text('Appearance',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.primary)),
+              style: Theme.of(context)
+                  .textTheme
+                  .labelLarge
+                  ?.copyWith(color: Theme.of(context).colorScheme.primary)),
         ),
         BlocBuilder<ThemeCubit, ThemeMode>(
-          builder: (context, themeMode) => Column(children: [
-            RadioListTile<ThemeMode>(
-              title: const Text('Light'),
-              value: ThemeMode.light,
-              groupValue: themeMode,
-              onChanged: (v) => context.read<ThemeCubit>().setTheme(v!),
+          builder: (context, themeMode) => Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+            child: SegmentedButton<ThemeMode>(
+              segments: const [
+                ButtonSegment<ThemeMode>(
+                  value: ThemeMode.light,
+                  label: Text('Light'),
+                  icon: Icon(Icons.light_mode_outlined),
+                ),
+                ButtonSegment<ThemeMode>(
+                  value: ThemeMode.dark,
+                  label: Text('Dark'),
+                  icon: Icon(Icons.dark_mode_outlined),
+                ),
+                ButtonSegment<ThemeMode>(
+                  value: ThemeMode.system,
+                  label: Text('System'),
+                  icon: Icon(Icons.settings_suggest_outlined),
+                ),
+              ],
+              selected: {themeMode},
+              onSelectionChanged: (selection) {
+                if (selection.isNotEmpty) {
+                  context.read<ThemeCubit>().setTheme(selection.first);
+                }
+              },
             ),
-            RadioListTile<ThemeMode>(
-              title: const Text('Dark'),
-              value: ThemeMode.dark,
-              groupValue: themeMode,
-              onChanged: (v) => context.read<ThemeCubit>().setTheme(v!),
-            ),
-            RadioListTile<ThemeMode>(
-              title: const Text('System default'),
-              value: ThemeMode.system,
-              groupValue: themeMode,
-              onChanged: (v) => context.read<ThemeCubit>().setTheme(v!),
-            ),
-          ]),
+          ),
         ),
       ],
     );
@@ -396,8 +425,10 @@ class _SettingsPageState extends State<SettingsPage> {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
           child: Text('Notifications',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.primary)),
+              style: Theme.of(context)
+                  .textTheme
+                  .labelLarge
+                  ?.copyWith(color: Theme.of(context).colorScheme.primary)),
         ),
         SwitchListTile(
           title: const Text('Deadline Reminders'),
@@ -422,8 +453,10 @@ class _SettingsPageState extends State<SettingsPage> {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
           child: Text('Data',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.primary)),
+              style: Theme.of(context)
+                  .textTheme
+                  .labelLarge
+                  ?.copyWith(color: Theme.of(context).colorScheme.primary)),
         ),
         ListTile(
           leading: const Icon(Icons.upload_outlined),
@@ -509,4 +542,3 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 }
-

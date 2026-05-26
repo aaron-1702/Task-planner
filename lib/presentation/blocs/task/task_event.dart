@@ -40,8 +40,16 @@ class TaskCreated extends TaskEvent {
 
   @override
   List<Object?> get props => [
-        userId, title, description, deadline, priority,
-        tags, categoryId, recurrenceRule, estimatedMinutes, subtasks,
+        userId,
+        title,
+        description,
+        deadline,
+        priority,
+        tags,
+        categoryId,
+        recurrenceRule,
+        estimatedMinutes,
+        subtasks,
       ];
 }
 
@@ -72,11 +80,4 @@ class TaskFilterChanged extends TaskEvent {
   const TaskFilterChanged(this.filter);
   @override
   List<Object> get props => [filter];
-}
-
-class _TasksUpdated extends TaskEvent {
-  final List<Task> tasks;
-  const _TasksUpdated(this.tasks);
-  @override
-  List<Object> get props => [tasks];
 }

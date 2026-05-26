@@ -5,14 +5,6 @@ import 'package:flex_color_scheme/flex_color_scheme.dart';
 class AppTheme {
   AppTheme._();
 
-  static const Color _primaryColor = Color(0xFF6366F1);       // Indigo
-  static const Color _secondaryColor = Color(0xFF8B5CF6);     // Violet
-  static const Color _tertiaryColor = Color(0xFF06B6D4);      // Cyan
-
-  static const Color _errorColor = Color(0xFFEF4444);
-  static const Color _successColor = Color(0xFF10B981);
-  static const Color _warningColor = Color(0xFFF59E0B);
-
   // Priority colors
   static const Color priorityLow = Color(0xFF10B981);
   static const Color priorityMedium = Color(0xFFF59E0B);
@@ -33,7 +25,7 @@ class AppTheme {
       subThemesData: const FlexSubThemesData(
         blendOnLevel: 10,
         blendOnColors: false,
-        useTextTheme: true,
+        useMaterial3Typography: true,
         useM2StyleDividerInM3: true,
         inputDecoratorIsFilled: true,
         inputDecoratorBorderType: FlexInputBorderType.outline,
@@ -82,7 +74,7 @@ class AppTheme {
       blendLevel: 13,
       subThemesData: const FlexSubThemesData(
         blendOnLevel: 20,
-        useTextTheme: true,
+        useMaterial3Typography: true,
         useM2StyleDividerInM3: true,
         inputDecoratorIsFilled: true,
         inputDecoratorBorderType: FlexInputBorderType.outline,

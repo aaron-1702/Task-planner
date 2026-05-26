@@ -51,6 +51,7 @@ dependencies:
 
   # Date & Time
   intl: ^0.20.2
+  timezone: ^0.9.4
 
   # Forms & Validation
   reactive_forms: ^17.0.1

@@ -16,21 +16,27 @@ import 'package:supabase_flutter/supabase_flutter.dart' as _i454;
 import '../../data/datasources/local/local_database.dart' as _i633;
 import '../../data/datasources/remote/supabase_calendar_event_datasource.dart'
     as _i14;
+import '../../data/datasources/remote/supabase_learning_entry_datasource.dart'
+    as _i374;
 import '../../data/datasources/remote/supabase_task_datasource.dart' as _i717;
 import '../../data/datasources/remote/supabase_work_entry_datasource.dart'
     as _i730;
 import '../../data/repositories/auth_repository_impl.dart' as _i895;
 import '../../data/repositories/calendar_event_repository.dart' as _i56;
+import '../../data/repositories/learning_entry_repository_impl.dart' as _i576;
 import '../../data/repositories/task_repository_impl.dart' as _i337;
 import '../../data/repositories/work_entry_repository_impl.dart' as _i742;
 import '../../domain/repositories/auth_repository.dart' as _i1073;
+import '../../domain/repositories/learning_entry_repository.dart' as _i551;
 import '../../domain/repositories/task_repository.dart' as _i250;
 import '../../domain/repositories/work_entry_repository.dart' as _i313;
+import '../../domain/usecases/learning_entry_usecases.dart' as _i204;
 import '../../domain/usecases/task_usecases.dart' as _i209;
 import '../../domain/usecases/work_entry_usecases.dart' as _i299;
 import '../../presentation/blocs/auth/auth_bloc.dart' as _i141;
 import '../../presentation/blocs/calendar/calendar_bloc.dart' as _i1073;
 import '../../presentation/blocs/calendar_event/cal_event_bloc.dart' as _i578;
+import '../../presentation/blocs/learninglog/learninglog_bloc.dart' as _i520;
 import '../../presentation/blocs/task/task_bloc.dart' as _i812;
 import '../../presentation/blocs/theme/theme_cubit.dart' as _i473;
 import '../../presentation/blocs/worklog/worklog_bloc.dart' as _i395;
@@ -50,12 +56,16 @@ extension GetItInjectableX on _i174.GetIt {
       environmentFilter,
     );
     final registerModule = _$RegisterModule();
+    gh.factory<_i204.ExportLearningEntriesCsvUseCase>(
+        () => const _i204.ExportLearningEntriesCsvUseCase());
     gh.factory<_i473.ThemeCubit>(() => _i473.ThemeCubit());
     gh.singleton<_i454.SupabaseClient>(() => registerModule.supabaseClient);
     gh.singleton<_i633.LocalDatabase>(() => _i633.LocalDatabase());
     gh.singleton<_i85.NotificationService>(() => _i85.NotificationService());
     gh.factory<_i1073.AuthRepository>(
         () => _i895.AuthRepositoryImpl(gh<_i454.SupabaseClient>()));
+    gh.factory<_i374.SupabaseLearningEntryDatasource>(() =>
+        _i374.SupabaseLearningEntryDatasource(gh<_i454.SupabaseClient>()));
     gh.factory<_i717.SupabaseTaskDataSource>(
         () => _i717.SupabaseTaskDataSource(gh<_i454.SupabaseClient>()));
     gh.factory<_i730.SupabaseWorkEntryDatasource>(
@@ -93,13 +103,24 @@ extension GetItInjectableX on _i174.GetIt {
           gh<_i56.CalendarEventRepository>(),
           gh<_i85.NotificationService>(),
         ));
-    gh.singleton<_i183.SyncService>(() => _i183.SyncService(
-          gh<_i250.TaskRepository>(),
-          gh<_i313.WorkEntryRepository>(),
-          gh<_i717.SupabaseTaskDataSource>(),
-          gh<_i454.SupabaseClient>(),
-          gh<_i633.LocalDatabase>(),
-        ));
+    gh.factory<_i551.LearningEntryRepository>(
+        () => _i576.LearningEntryRepositoryImpl(
+              gh<_i633.LocalDatabase>(),
+              gh<_i374.SupabaseLearningEntryDatasource>(),
+            ));
+    gh.factory<_i204.WatchLearningEntriesUseCase>(() =>
+        _i204.WatchLearningEntriesUseCase(gh<_i551.LearningEntryRepository>()));
+    gh.factory<_i204.WatchLearningEntriesInRangeUseCase>(() =>
+        _i204.WatchLearningEntriesInRangeUseCase(
+            gh<_i551.LearningEntryRepository>()));
+    gh.factory<_i204.CreateLearningEntryUseCase>(() =>
+        _i204.CreateLearningEntryUseCase(gh<_i551.LearningEntryRepository>()));
+    gh.factory<_i204.UpdateLearningEntryUseCase>(() =>
+        _i204.UpdateLearningEntryUseCase(gh<_i551.LearningEntryRepository>()));
+    gh.factory<_i204.DeleteLearningEntryUseCase>(() =>
+        _i204.DeleteLearningEntryUseCase(gh<_i551.LearningEntryRepository>()));
+    gh.factory<_i204.SyncLearningEntriesUseCase>(() =>
+        _i204.SyncLearningEntriesUseCase(gh<_i551.LearningEntryRepository>()));
     gh.factory<_i209.CreateTaskUseCase>(
         () => _i209.CreateTaskUseCase(gh<_i250.TaskRepository>()));
     gh.factory<_i209.UpdateTaskUseCase>(
@@ -116,19 +137,33 @@ extension GetItInjectableX on _i174.GetIt {
           gh<_i209.GetTasksByDateUseCase>(),
           gh<_i209.UpdateTaskUseCase>(),
         ));
-    gh.factory<_i812.TaskBloc>(() => _i812.TaskBloc(
-          gh<_i209.CreateTaskUseCase>(),
-          gh<_i209.UpdateTaskUseCase>(),
-          gh<_i209.DeleteTaskUseCase>(),
-          gh<_i209.GetTasksUseCase>(),
-          gh<_i209.WatchTasksUseCase>(),
-        ));
     gh.factory<_i395.WorklogBloc>(() => _i395.WorklogBloc(
           gh<_i299.WatchWorkEntriesUseCase>(),
           gh<_i299.CreateWorkEntryUseCase>(),
           gh<_i299.UpdateWorkEntryUseCase>(),
           gh<_i299.DeleteWorkEntryUseCase>(),
           gh<_i299.SyncWorkEntriesUseCase>(),
+        ));
+    gh.factory<_i812.TaskBloc>(() => _i812.TaskBloc(
+          gh<_i209.CreateTaskUseCase>(),
+          gh<_i209.UpdateTaskUseCase>(),
+          gh<_i209.DeleteTaskUseCase>(),
+          gh<_i209.WatchTasksUseCase>(),
+        ));
+    gh.factory<_i520.LearninglogBloc>(() => _i520.LearninglogBloc(
+          gh<_i204.WatchLearningEntriesUseCase>(),
+          gh<_i204.CreateLearningEntryUseCase>(),
+          gh<_i204.UpdateLearningEntryUseCase>(),
+          gh<_i204.DeleteLearningEntryUseCase>(),
+          gh<_i204.SyncLearningEntriesUseCase>(),
+          gh<_i204.ExportLearningEntriesCsvUseCase>(),
+        ));
+    gh.singleton<_i183.SyncService>(() => _i183.SyncService(
+          gh<_i250.TaskRepository>(),
+          gh<_i313.WorkEntryRepository>(),
+          gh<_i551.LearningEntryRepository>(),
+          gh<_i454.SupabaseClient>(),
+          gh<_i633.LocalDatabase>(),
         ));
     return this;
   }

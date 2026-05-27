@@ -76,14 +76,14 @@ class _WorklogView extends StatelessWidget {
             ),
           ],
         ),
-        body: const ListView(
-          children: [
-            _ViewModeSelector(),
-            _DateNavigator(),
-            _TimerCard(),
-            _SummaryBanner(),
-            _MonthlyWorkGoalPanel(),
-            _EntryList(isEmbedded: true),
+        body: const CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(child: _ViewModeSelector()),
+            SliverToBoxAdapter(child: _DateNavigator()),
+            SliverToBoxAdapter(child: _TimerCard()),
+            SliverToBoxAdapter(child: _SummaryBanner()),
+            SliverToBoxAdapter(child: _MonthlyWorkGoalPanel()),
+            _EntrySliverList(),
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
@@ -517,50 +517,58 @@ class _MonthlyWorkGoalPanel extends StatelessWidget {
 
 // ─── Entry list ───────────────────────────────────────────────────────────────
 
-class _EntryList extends StatelessWidget {
-  final bool isEmbedded;
-
-  const _EntryList({this.isEmbedded = false});
+class _EntrySliverList extends StatelessWidget {
+  const _EntrySliverList();
 
   @override
   Widget build(BuildContext context) {
     final state = context.select<WorklogBloc, WorklogState>((b) => b.state);
 
     if (state.status == WorklogStatus.loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const SliverFillRemaining(
+        hasScrollBody: false,
+        child: Center(child: CircularProgressIndicator()),
+      );
     }
 
     final entries = state.periodEntries;
     final showEntryDate = state.viewMode == WorklogViewMode.month;
 
     if (entries.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.hourglass_empty_outlined,
-                size: 48,
-                color: Theme.of(context).colorScheme.outline),
-            const SizedBox(height: 8),
-            Text('No entries in this period',
-                style: Theme.of(context).textTheme.bodyLarge),
-          ],
+      return SliverFillRemaining(
+        hasScrollBody: false,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.hourglass_empty_outlined,
+                  size: 48,
+                  color: Theme.of(context).colorScheme.outline),
+              const SizedBox(height: 8),
+              Text('No entries in this period',
+                  style: Theme.of(context).textTheme.bodyLarge),
+            ],
+          ),
         ),
       );
     }
 
-    return ListView.separated(
-      shrinkWrap: isEmbedded,
-      physics: isEmbedded
-          ? const NeverScrollableScrollPhysics()
-          : const AlwaysScrollableScrollPhysics(),
-      padding:
-          EdgeInsets.fromLTRB(16, 4, 16, isEmbedded ? 96 : 80),
-      itemCount: entries.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 4),
-      itemBuilder: (context, i) => EntryTile(
-        entry: entries[i],
-        showDate: showEntryDate,
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            if (index.isOdd) {
+              return const SizedBox(height: 4);
+            }
+            final entryIndex = index ~/ 2;
+            return EntryTile(
+              entry: entries[entryIndex],
+              showDate: showEntryDate,
+            );
+          },
+          childCount: entries.isEmpty ? 0 : (entries.length * 2) - 1,
+        ),
       ),
     );
   }

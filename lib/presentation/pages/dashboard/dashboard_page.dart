@@ -6,12 +6,12 @@ import 'package:intl/intl.dart';
 
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/learning_goal/learning_goal_cubit.dart';
-import '../../blocs/work_goal/work_goal_cubit.dart';
 import '../../blocs/task/task_bloc.dart';
 import '../../blocs/theme/theme_cubit.dart';
+import '../../blocs/work_goal/work_goal_cubit.dart';
 import '../../widgets/monthly_learning_progress_card.dart';
-import '../../widgets/task_card.dart';
 import '../../widgets/stats_summary_card.dart';
+import '../../widgets/task_card.dart';
 import '../../../config/theme.dart';
 import '../../../core/di/injection.dart';
 import '../../../services/sync_service.dart';
@@ -24,6 +24,7 @@ class DashboardPage extends StatelessWidget {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, authState) {
         final user = authState is AuthAuthenticated ? authState.user : null;
+
         return BlocBuilder<TaskBloc, TaskState>(
           builder: (context, taskState) {
             return RefreshIndicator(
@@ -33,7 +34,7 @@ class DashboardPage extends StatelessWidget {
                   _buildAppBar(context, user?.displayName ?? user?.email ?? ''),
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
                       child: _buildHeroSection(
                         context,
                         user?.displayName,
@@ -43,13 +44,13 @@ class DashboardPage extends StatelessWidget {
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
                       child: _buildOverviewMetrics(context, taskState),
                     ),
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
                       child: LayoutBuilder(
                         builder: (context, constraints) {
                           final isWide = constraints.maxWidth >= 900;
@@ -59,12 +60,12 @@ class DashboardPage extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
-                                  flex: 2,
+                                  flex: 3,
                                   child: _buildTaskStream(context, taskState),
                                 ),
-                                const SizedBox(width: 20),
+                                const SizedBox(width: 16),
                                 Expanded(
-                                  flex: 1,
+                                  flex: 2,
                                   child: _buildSidePanel(context, taskState),
                                 ),
                               ],
@@ -80,8 +81,6 @@ class DashboardPage extends StatelessWidget {
                             ],
                           );
                         },
-                      ),
-                        ),
                       ),
                     ),
                   ),
@@ -108,12 +107,17 @@ class DashboardPage extends StatelessWidget {
               color: Theme.of(context).colorScheme.primary,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.check_circle_outline,
-                color: Colors.white, size: 18),
+            child: const Icon(
+              Icons.check_circle_outline,
+              color: Colors.white,
+              size: 18,
+            ),
           ),
           const SizedBox(width: 10),
-          const Text('Smart Planner',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
+          const Text(
+            'Smart Planner',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+          ),
         ],
       ),
       actions: [
@@ -140,97 +144,23 @@ class DashboardPage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '$greeting${name != null ? ', $name' : ''}! 👋',
+          '$greeting${name != null ? ', $name' : ''}!',
           style: Theme.of(context)
               .textTheme
               .headlineSmall
               ?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 4),
-        Text(dateStr,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.6))),
+        Text(
+          dateStr,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(
+                      alpha: 0.6,
+                    ),
+              ),
+        ),
       ],
     ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1);
-  }
-
-  Widget _buildOverviewMetrics(BuildContext context, TaskState state) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= 720;
-
-        if (isWide) {
-          return Row(
-            children: [
-              Expanded(
-                child: StatsSummaryCard(
-                  title: 'Total',
-                  value: state.totalCount.toString(),
-                  icon: Icons.list_alt_outlined,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: StatsSummaryCard(
-                  title: 'Done',
-                  value: state.completedCount.toString(),
-                  icon: Icons.check_circle_outline,
-                  color: AppTheme.statusDone,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: StatsSummaryCard(
-                  title: 'Progress',
-                  value: '${(state.completionRate * 100).toStringAsFixed(0)}%',
-                  icon: Icons.trending_up_outlined,
-                  color: AppTheme.priorityMedium,
-                ),
-              ),
-            ],
-          ).animate().fadeIn(duration: 400.ms, delay: 100.ms);
-        }
-
-        final cardWidth = (constraints.maxWidth - 12) / 2;
-        return Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            SizedBox(
-              width: cardWidth,
-              child: StatsSummaryCard(
-                title: 'Total',
-                value: state.totalCount.toString(),
-                icon: Icons.list_alt_outlined,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            SizedBox(
-              width: cardWidth,
-              child: StatsSummaryCard(
-                title: 'Done',
-                value: state.completedCount.toString(),
-                icon: Icons.check_circle_outline,
-                color: AppTheme.statusDone,
-              ),
-            ),
-            SizedBox(
-              width: constraints.maxWidth,
-              child: StatsSummaryCard(
-                title: 'Progress',
-                value: '${(state.completionRate * 100).toStringAsFixed(0)}%',
-                icon: Icons.trending_up_outlined,
-                color: AppTheme.priorityMedium,
-              ),
-            ),
-          ],
-        ).animate().fadeIn(duration: 400.ms, delay: 100.ms);
-      },
-    );
   }
 
   Widget _buildHeroSection(
@@ -238,15 +168,9 @@ class DashboardPage extends StatelessWidget {
     String? name,
     TaskState state,
   ) {
-    final hour = DateTime.now().hour;
-    final greeting = hour < 12
-        ? 'Good morning'
-        : hour < 18
-            ? 'Good afternoon'
-            : 'Good evening';
-    final dateStr = DateFormat('EEEE, MMMM d').format(DateTime.now());
     final colorScheme = Theme.of(context).colorScheme;
     final openTasks = state.totalCount - state.completedCount;
+    final dateStr = DateFormat('EEEE, MMMM d').format(DateTime.now());
 
     return SizedBox(
       width: double.infinity,
@@ -343,6 +267,82 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
+  Widget _buildOverviewMetrics(BuildContext context, TaskState state) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 720;
+
+        if (isWide) {
+          return Row(
+            children: [
+              Expanded(
+                child: StatsSummaryCard(
+                  title: 'Total',
+                  value: state.totalCount.toString(),
+                  icon: Icons.list_alt_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: StatsSummaryCard(
+                  title: 'Done',
+                  value: state.completedCount.toString(),
+                  icon: Icons.check_circle_outline,
+                  color: AppTheme.statusDone,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: StatsSummaryCard(
+                  title: 'Progress',
+                  value: '${(state.completionRate * 100).toStringAsFixed(0)}%',
+                  icon: Icons.trending_up_outlined,
+                  color: AppTheme.priorityMedium,
+                ),
+              ),
+            ],
+          ).animate().fadeIn(duration: 400.ms, delay: 100.ms);
+        }
+
+        final cardWidth = (constraints.maxWidth - 12) / 2;
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            SizedBox(
+              width: cardWidth,
+              child: StatsSummaryCard(
+                title: 'Total',
+                value: state.totalCount.toString(),
+                icon: Icons.list_alt_outlined,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            SizedBox(
+              width: cardWidth,
+              child: StatsSummaryCard(
+                title: 'Done',
+                value: state.completedCount.toString(),
+                icon: Icons.check_circle_outline,
+                color: AppTheme.statusDone,
+              ),
+            ),
+            SizedBox(
+              width: constraints.maxWidth,
+              child: StatsSummaryCard(
+                title: 'Progress',
+                value: '${(state.completionRate * 100).toStringAsFixed(0)}%',
+                icon: Icons.trending_up_outlined,
+                color: AppTheme.priorityMedium,
+              ),
+            ),
+          ],
+        ).animate().fadeIn(duration: 400.ms, delay: 100.ms);
+      },
+    );
+  }
+
   Widget _buildTaskStream(BuildContext context, TaskState taskState) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -396,6 +396,56 @@ class DashboardPage extends StatelessWidget {
         const SizedBox(height: 12),
         _buildQuickActionsCard(context),
       ],
+    );
+  }
+
+  Widget _buildWorkGoalSummary(BuildContext context) {
+    final now = DateTime.now();
+    final monthLabel = DateFormat('MMMM yyyy').format(now);
+
+    return BlocBuilder<WorkGoalCubit, WorkGoalState>(
+      builder: (context, state) {
+        final goal = state.goalForMonth(now);
+        final worked = state.workedForMonth(now);
+        final remaining = state.remainingForMonth(now);
+        final progress = state.progressForMonth(now);
+
+        return MonthlyLearningProgressCard(
+          title: 'Monthly work goal',
+          monthLabel: monthLabel,
+          learned: worked,
+          goal: goal,
+          remaining: remaining,
+          progress: progress,
+          actionLabel: state.hasGoalForMonth(now) ? 'Edit goal' : 'Set goal',
+          onActionPressed: () => context.go('/worklog'),
+        ).animate().fadeIn(duration: 400.ms, delay: 140.ms);
+      },
+    );
+  }
+
+  Widget _buildLearningGoalSummary(BuildContext context) {
+    final now = DateTime.now();
+    final monthLabel = DateFormat('MMMM yyyy').format(now);
+
+    return BlocBuilder<LearningGoalCubit, LearningGoalState>(
+      builder: (context, state) {
+        final goal = state.goalForMonth(now);
+        final learned = state.learnedForMonth(now);
+        final remaining = state.remainingForMonth(now);
+        final progress = state.progressForMonth(now);
+
+        return MonthlyLearningProgressCard(
+          title: 'Monthly learning goal',
+          monthLabel: monthLabel,
+          learned: learned,
+          goal: goal,
+          remaining: remaining,
+          progress: progress,
+          actionLabel: state.hasGoalForMonth(now) ? 'Edit goal' : 'Set goal',
+          onActionPressed: () => context.go('/learninglog'),
+        ).animate().fadeIn(duration: 400.ms, delay: 180.ms);
+      },
     );
   }
 
@@ -551,41 +601,6 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  Widget _buildLearningGoalSummary(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: Container(
-        padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          children: [
-            Icon(Icons.celebration_outlined,
-                size: 48,
-                color: Theme.of(context)
-                    .colorScheme
-                    .primary
-                    .withValues(alpha: 0.6)),
-            const SizedBox(height: 12),
-            Text('All clear for today!',
-                style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 4),
-            Text(
-              'No tasks due today. Enjoy your day!',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.6),
-                  ),
-            ),
-          ],
-  Widget _buildWorkGoalSummary(BuildContext context) {
-    final now = DateTime.now();
-  }
-
   Widget _buildSectionHeader(
     BuildContext context,
     String title,
@@ -595,14 +610,19 @@ class DashboardPage extends StatelessWidget {
   }) {
     return Row(
       children: [
-        Icon(icon,
-            size: 20, color: color ?? Theme.of(context).colorScheme.primary),
+        Icon(
+          icon,
+          size: 20,
+          color: color ?? Theme.of(context).colorScheme.primary,
+        ),
         const SizedBox(width: 8),
-        Text(title,
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(fontWeight: FontWeight.w600)),
+        Text(
+          title,
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium
+              ?.copyWith(fontWeight: FontWeight.w600),
+        ),
         if (count != null) ...[
           const Spacer(),
           Container(
@@ -624,32 +644,38 @@ class DashboardPage extends StatelessWidget {
   }
 
   Widget _buildEmptyDay(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: [
-          Icon(Icons.celebration_outlined,
+    return SizedBox(
+      width: double.infinity,
+      child: Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.celebration_outlined,
               size: 48,
-              color:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.6)),
-          const SizedBox(height: 12),
-          Text('All clear for today!',
-              style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 4),
-          Text(
-            'No tasks due today. Enjoy your day!',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.6),
-                ),
-          ),
-        ],
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'All clear for today!',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'No tasks due today. Enjoy your day!',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.6),
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }

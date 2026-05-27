@@ -33,7 +33,7 @@ class DashboardPage extends StatelessWidget {
                   _buildAppBar(context, user?.displayName ?? user?.email ?? ''),
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                       child: _buildHeroSection(
                         context,
                         user?.displayName,
@@ -43,13 +43,13 @@ class DashboardPage extends StatelessWidget {
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
                       child: _buildOverviewMetrics(context, taskState),
                     ),
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                       child: LayoutBuilder(
                         builder: (context, constraints) {
                           final isWide = constraints.maxWidth >= 900;
@@ -248,71 +248,74 @@ class DashboardPage extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final openTasks = state.totalCount - state.completedCount;
 
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colorScheme.primaryContainer,
-            colorScheme.tertiaryContainer,
-          ],
+    return SizedBox(
+      width: double.infinity,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              colorScheme.primaryContainer,
+              colorScheme.tertiaryContainer,
+            ],
+          ),
         ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(22),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildGreeting(context, name),
-            const SizedBox(height: 14),
-            Text(
-              'You have $openTasks open tasks, ${state.todayTasks.length} due today and ${state.overdueTasks.length} overdue.',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.78),
+        child: Padding(
+          padding: const EdgeInsets.all(22),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildGreeting(context, name),
+              const SizedBox(height: 14),
+              Text(
+                'You have $openTasks open tasks, ${state.todayTasks.length} due today and ${state.overdueTasks.length} overdue.',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: colorScheme.onSurface.withValues(alpha: 0.78),
+                    ),
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _buildStatusChip(
+                    context,
+                    icon: Icons.today_outlined,
+                    label: dateStr,
                   ),
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _buildStatusChip(
-                  context,
-                  icon: Icons.today_outlined,
-                  label: dateStr,
-                ),
-                _buildStatusChip(
-                  context,
-                  icon: Icons.warning_amber_rounded,
-                  label: '${state.overdueTasks.length} overdue',
-                ),
-                _buildStatusChip(
-                  context,
-                  icon: Icons.check_circle_outline,
-                  label: '${state.completedCount} completed',
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                FilledButton.icon(
-                  onPressed: () => context.goNamed('task-new'),
-                  icon: const Icon(Icons.add),
-                  label: const Text('New task'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () => context.goNamed('tasks'),
-                  icon: const Icon(Icons.list_alt_outlined),
-                  label: const Text('Open tasks'),
-                ),
-              ],
-            ),
-          ],
+                  _buildStatusChip(
+                    context,
+                    icon: Icons.warning_amber_rounded,
+                    label: '${state.overdueTasks.length} overdue',
+                  ),
+                  _buildStatusChip(
+                    context,
+                    icon: Icons.check_circle_outline,
+                    label: '${state.completedCount} completed',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  FilledButton.icon(
+                    onPressed: () => context.goNamed('task-new'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('New task'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => context.goNamed('tasks'),
+                    icon: const Icon(Icons.list_alt_outlined),
+                    label: const Text('Open tasks'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.08);
@@ -549,53 +552,38 @@ class DashboardPage extends StatelessWidget {
   }
 
   Widget _buildLearningGoalSummary(BuildContext context) {
-    final now = DateTime.now();
-    final monthLabel = DateFormat('MMMM yyyy').format(now);
-
-    return BlocBuilder<LearningGoalCubit, LearningGoalState>(
-      builder: (context, state) {
-        final goal = state.goalForMonth(now);
-        final learned = state.learnedForMonth(now);
-        final remaining = state.remainingForMonth(now);
-        final progress = state.progressForMonth(now);
-
-        return MonthlyLearningProgressCard(
-          title: 'Monthly learning goal',
-          monthLabel: monthLabel,
-          learned: learned,
-          goal: goal,
-          remaining: remaining,
-          progress: progress,
-          actionLabel: state.hasGoalForMonth(now) ? 'Edit goal' : 'Set goal',
-          onActionPressed: () => context.go('/learninglog'),
-        ).animate().fadeIn(duration: 400.ms, delay: 180.ms);
-      },
-    );
-  }
-
+    return SizedBox(
+      width: double.infinity,
+      child: Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.celebration_outlined,
+                size: 48,
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.6)),
+            const SizedBox(height: 12),
+            Text('All clear for today!',
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 4),
+            Text(
+              'No tasks due today. Enjoy your day!',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.6),
+                  ),
+            ),
+          ],
   Widget _buildWorkGoalSummary(BuildContext context) {
     final now = DateTime.now();
-    final monthLabel = DateFormat('MMMM yyyy').format(now);
-
-    return BlocBuilder<WorkGoalCubit, WorkGoalState>(
-      builder: (context, state) {
-        final goal = state.goalForMonth(now);
-        final worked = state.workedForMonth(now);
-        final remaining = state.remainingForMonth(now);
-        final progress = state.progressForMonth(now);
-
-        return MonthlyLearningProgressCard(
-          title: 'Monthly work goal',
-          monthLabel: monthLabel,
-          learned: worked,
-          goal: goal,
-          remaining: remaining,
-          progress: progress,
-          actionLabel: state.hasGoalForMonth(now) ? 'Edit goal' : 'Set goal',
-          onActionPressed: () => context.go('/worklog'),
-        ).animate().fadeIn(duration: 400.ms, delay: 140.ms);
-      },
-    );
   }
 
   Widget _buildSectionHeader(

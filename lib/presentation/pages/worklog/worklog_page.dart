@@ -76,14 +76,14 @@ class _WorklogView extends StatelessWidget {
             ),
           ],
         ),
-        body: const Column(
+        body: const ListView(
           children: [
             _ViewModeSelector(),
             _DateNavigator(),
             _TimerCard(),
             _SummaryBanner(),
             _MonthlyWorkGoalPanel(),
-            Expanded(child: _EntryList()),
+            _EntryList(isEmbedded: true),
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
@@ -518,7 +518,9 @@ class _MonthlyWorkGoalPanel extends StatelessWidget {
 // ─── Entry list ───────────────────────────────────────────────────────────────
 
 class _EntryList extends StatelessWidget {
-  const _EntryList();
+  final bool isEmbedded;
+
+  const _EntryList({this.isEmbedded = false});
 
   @override
   Widget build(BuildContext context) {
@@ -548,7 +550,12 @@ class _EntryList extends StatelessWidget {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 80),
+      shrinkWrap: isEmbedded,
+      physics: isEmbedded
+          ? const NeverScrollableScrollPhysics()
+          : const AlwaysScrollableScrollPhysics(),
+      padding:
+          EdgeInsets.fromLTRB(16, 4, 16, isEmbedded ? 96 : 80),
       itemCount: entries.length,
       separatorBuilder: (_, __) => const SizedBox(height: 4),
       itemBuilder: (context, i) => EntryTile(

@@ -81,14 +81,14 @@ class _LearninglogView extends StatelessWidget {
             ),
           ],
         ),
-        body: Column(
-          children: [
-            const _ViewModeSelector(),
-            const _DateNavigator(),
-            const LearningTimerCard(),
-            const _SummaryBanner(),
-            const _MonthlyGoalPanel(),
-            const Expanded(child: _EntryList()),
+        body: ListView(
+          children: const [
+            _ViewModeSelector(),
+            _DateNavigator(),
+            LearningTimerCard(),
+            _SummaryBanner(),
+            _MonthlyGoalPanel(),
+            _EntryList(isEmbedded: true),
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
@@ -536,7 +536,9 @@ class _StatChip extends StatelessWidget {
 }
 
 class _EntryList extends StatelessWidget {
-  const _EntryList();
+  final bool isEmbedded;
+
+  const _EntryList({this.isEmbedded = false});
 
   @override
   Widget build(BuildContext context) {
@@ -571,7 +573,12 @@ class _EntryList extends StatelessWidget {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 80),
+      shrinkWrap: isEmbedded,
+      physics: isEmbedded
+          ? const NeverScrollableScrollPhysics()
+          : const AlwaysScrollableScrollPhysics(),
+      padding:
+          EdgeInsets.fromLTRB(16, 4, 16, isEmbedded ? 96 : 80),
       itemCount: entries.length,
       separatorBuilder: (_, __) => const SizedBox(height: 4),
       itemBuilder: (context, i) => LearningEntryTile(

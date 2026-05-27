@@ -31,51 +31,74 @@ class DashboardPage extends StatelessWidget {
               child: CustomScrollView(
                 slivers: [
                   _buildAppBar(context, user?.displayName ?? user?.email ?? ''),
-                  SliverPadding(
-                    padding: const EdgeInsets.all(20),
-                    sliver: SliverList(
-                      delegate: SliverChildListDelegate([
-                        _buildGreeting(context, user?.displayName),
-                        const SizedBox(height: 20),
-                        _buildStatsSummary(context, taskState),
-                        const SizedBox(height: 16),
-                        _buildWorkGoalSummary(context),
-                        const SizedBox(height: 12),
-                        _buildLearningGoalSummary(context),
-                        const SizedBox(height: 24),
-                        if (taskState.overdueTasks.isNotEmpty) ...[
-                          _buildSectionHeader(
+                  SliverToBoxAdapter(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1240),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                          child: _buildHeroSection(
                             context,
-                            'Overdue',
-                            Icons.warning_amber_rounded,
-                            color: AppTheme.priorityHigh,
-                            count: taskState.overdueTasks.length,
+                            user?.displayName,
+                            taskState,
                           ),
-                          const SizedBox(height: 12),
-                          ...taskState.overdueTasks.take(3).map((t) => Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: TaskCard(task: t),
-                              )),
-                          const SizedBox(height: 20),
-                        ],
-                        _buildSectionHeader(
-                          context,
-                          "Today's Tasks",
-                          Icons.today_outlined,
-                          count: taskState.todayTasks.length,
                         ),
-                        const SizedBox(height: 12),
-                        if (taskState.todayTasks.isEmpty)
-                          _buildEmptyDay(context)
-                        else
-                          ...taskState.todayTasks.map((t) => Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: TaskCard(task: t),
-                              )),
-                        const SizedBox(height: 80),
-                      ]),
+                      ),
                     ),
                   ),
+                  SliverToBoxAdapter(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1240),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                          child: _buildOverviewMetrics(context, taskState),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1240),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final isWide = constraints.maxWidth >= 900;
+
+                              if (isWide) {
+                                return Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      flex: 2,
+                                      child: _buildTaskStream(context, taskState),
+                                    ),
+                                    const SizedBox(width: 20),
+                                    Expanded(
+                                      flex: 1,
+                                      child: _buildSidePanel(context, taskState),
+                                    ),
+                                  ],
+                                );
+                              }
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  _buildTaskStream(context, taskState),
+                                  const SizedBox(height: 20),
+                                  _buildSidePanel(context, taskState),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 60)),
                 ],
               ),
             );
@@ -147,37 +170,395 @@ class DashboardPage extends StatelessWidget {
     ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1);
   }
 
-  Widget _buildStatsSummary(BuildContext context, TaskState state) {
-    return Row(
+  Widget _buildOverviewMetrics(BuildContext context, TaskState state) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 720;
+
+        if (isWide) {
+          return Row(
+            children: [
+              Expanded(
+                child: StatsSummaryCard(
+                  title: 'Total',
+                  value: state.totalCount.toString(),
+                  icon: Icons.list_alt_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: StatsSummaryCard(
+                  title: 'Done',
+                  value: state.completedCount.toString(),
+                  icon: Icons.check_circle_outline,
+                  color: AppTheme.statusDone,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: StatsSummaryCard(
+                  title: 'Progress',
+                  value: '${(state.completionRate * 100).toStringAsFixed(0)}%',
+                  icon: Icons.trending_up_outlined,
+                  color: AppTheme.priorityMedium,
+                ),
+              ),
+            ],
+          ).animate().fadeIn(duration: 400.ms, delay: 100.ms);
+        }
+
+        final cardWidth = (constraints.maxWidth - 12) / 2;
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            SizedBox(
+              width: cardWidth,
+              child: StatsSummaryCard(
+                title: 'Total',
+                value: state.totalCount.toString(),
+                icon: Icons.list_alt_outlined,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            SizedBox(
+              width: cardWidth,
+              child: StatsSummaryCard(
+                title: 'Done',
+                value: state.completedCount.toString(),
+                icon: Icons.check_circle_outline,
+                color: AppTheme.statusDone,
+              ),
+            ),
+            SizedBox(
+              width: constraints.maxWidth,
+              child: StatsSummaryCard(
+                title: 'Progress',
+                value: '${(state.completionRate * 100).toStringAsFixed(0)}%',
+                icon: Icons.trending_up_outlined,
+                color: AppTheme.priorityMedium,
+              ),
+            ),
+          ],
+        ).animate().fadeIn(duration: 400.ms, delay: 100.ms);
+      },
+    );
+  }
+
+  Widget _buildHeroSection(
+    BuildContext context,
+    String? name,
+    TaskState state,
+  ) {
+    final hour = DateTime.now().hour;
+    final greeting = hour < 12
+        ? 'Good morning'
+        : hour < 18
+            ? 'Good afternoon'
+            : 'Good evening';
+    final dateStr = DateFormat('EEEE, MMMM d').format(DateTime.now());
+    final colorScheme = Theme.of(context).colorScheme;
+    final openTasks = state.totalCount - state.completedCount;
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colorScheme.primaryContainer,
+            colorScheme.tertiaryContainer,
+          ],
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildGreeting(context, name),
+            const SizedBox(height: 14),
+            Text(
+              'You have $openTasks open tasks, ${state.todayTasks.length} due today and ${state.overdueTasks.length} overdue.',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.78),
+                  ),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _buildStatusChip(
+                  context,
+                  icon: Icons.today_outlined,
+                  label: dateStr,
+                ),
+                _buildStatusChip(
+                  context,
+                  icon: Icons.warning_amber_rounded,
+                  label: '${state.overdueTasks.length} overdue',
+                ),
+                _buildStatusChip(
+                  context,
+                  icon: Icons.check_circle_outline,
+                  label: '${state.completedCount} completed',
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                FilledButton.icon(
+                  onPressed: () => context.goNamed('task-new'),
+                  icon: const Icon(Icons.add),
+                  label: const Text('New task'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => context.goNamed('tasks'),
+                  icon: const Icon(Icons.list_alt_outlined),
+                  label: const Text('Open tasks'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.08);
+  }
+
+  Widget _buildStatusChip(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16),
+          const SizedBox(width: 6),
+          Text(label, style: Theme.of(context).textTheme.labelMedium),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTaskStream(BuildContext context, TaskState taskState) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: StatsSummaryCard(
-            title: 'Total',
-            value: state.totalCount.toString(),
-            icon: Icons.list_alt_outlined,
-            color: Theme.of(context).colorScheme.primary,
+        if (taskState.overdueTasks.isNotEmpty) ...[
+          _buildSectionHeader(
+            context,
+            'Overdue',
+            Icons.warning_amber_rounded,
+            color: AppTheme.priorityHigh,
+            count: taskState.overdueTasks.length,
           ),
+          const SizedBox(height: 12),
+          ...taskState.overdueTasks.take(3).map(
+                (task) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: TaskCard(task: task),
+                ),
+              ),
+          const SizedBox(height: 18),
+        ],
+        _buildSectionHeader(
+          context,
+          "Today's Tasks",
+          Icons.today_outlined,
+          count: taskState.todayTasks.length,
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: StatsSummaryCard(
-            title: 'Done',
-            value: state.completedCount.toString(),
-            icon: Icons.check_circle_outline,
-            color: AppTheme.statusDone,
+        const SizedBox(height: 12),
+        if (taskState.todayTasks.isEmpty)
+          _buildEmptyDay(context)
+        else
+          ...taskState.todayTasks.map(
+            (task) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: TaskCard(task: task),
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: StatsSummaryCard(
-            title: 'Progress',
-            value: '${(state.completionRate * 100).toStringAsFixed(0)}%',
-            icon: Icons.trending_up_outlined,
-            color: AppTheme.priorityMedium,
-          ),
-        ),
       ],
-    ).animate().fadeIn(duration: 400.ms, delay: 100.ms);
+    );
+  }
+
+  Widget _buildSidePanel(BuildContext context, TaskState taskState) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildWorkGoalSummary(context),
+        const SizedBox(height: 12),
+        _buildLearningGoalSummary(context),
+        const SizedBox(height: 12),
+        _buildInsightCard(context, taskState),
+        const SizedBox(height: 12),
+        _buildQuickActionsCard(context),
+      ],
+    );
+  }
+
+  Widget _buildInsightCard(BuildContext context, TaskState taskState) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Today at a glance',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildMiniStat(
+                    context,
+                    label: 'Open',
+                    value: (taskState.totalCount - taskState.completedCount)
+                        .toString(),
+                    icon: Icons.radio_button_unchecked,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildMiniStat(
+                    context,
+                    label: 'Due today',
+                    value: taskState.todayTasks.length.toString(),
+                    icon: Icons.calendar_today_outlined,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildMiniStat(
+                    context,
+                    label: 'Overdue',
+                    value: taskState.overdueTasks.length.toString(),
+                    icon: Icons.warning_amber_rounded,
+                    accent: AppTheme.priorityHigh,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildMiniStat(
+                    context,
+                    label: 'Done',
+                    value: taskState.completedCount.toString(),
+                    icon: Icons.check_circle_outline,
+                    accent: AppTheme.statusDone,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMiniStat(
+    BuildContext context, {
+    required String label,
+    required String value,
+    required IconData icon,
+    Color? accent,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final color = accent ?? colorScheme.primary;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 18),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.65),
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActionsCard(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Quick actions',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            _ActionTile(
+              icon: Icons.add_task_outlined,
+              title: 'Create task',
+              subtitle: 'Add a new item to your list',
+              onTap: () => context.goNamed('task-new'),
+            ),
+            const SizedBox(height: 8),
+            _ActionTile(
+              icon: Icons.work_outline,
+              title: 'Work log',
+              subtitle: 'Track monthly work progress',
+              onTap: () => context.goNamed('worklog'),
+            ),
+            const SizedBox(height: 8),
+            _ActionTile(
+              icon: Icons.school_outlined,
+              title: 'Learning log',
+              subtitle: 'Update study time goals',
+              onTap: () => context.goNamed('learninglog'),
+            ),
+            const SizedBox(height: 8),
+            _ActionTile(
+              icon: Icons.calendar_month_outlined,
+              title: 'Calendar',
+              subtitle: 'See your planned events',
+              onTap: () => context.goNamed('calendar'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildLearningGoalSummary(BuildContext context) {
@@ -294,6 +675,74 @@ class DashboardPage extends StatelessWidget {
                 ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ActionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _ActionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, size: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurface.withValues(alpha: 0.65),
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

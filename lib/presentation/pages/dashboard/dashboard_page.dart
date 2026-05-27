@@ -32,68 +32,55 @@ class DashboardPage extends StatelessWidget {
                 slivers: [
                   _buildAppBar(context, user?.displayName ?? user?.email ?? ''),
                   SliverToBoxAdapter(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 1240),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-                          child: _buildHeroSection(
-                            context,
-                            user?.displayName,
-                            taskState,
-                          ),
-                        ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                      child: _buildHeroSection(
+                        context,
+                        user?.displayName,
+                        taskState,
                       ),
                     ),
                   ),
                   SliverToBoxAdapter(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 1240),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                          child: _buildOverviewMetrics(context, taskState),
-                        ),
-                      ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      child: _buildOverviewMetrics(context, taskState),
                     ),
                   ),
                   SliverToBoxAdapter(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 1240),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              final isWide = constraints.maxWidth >= 900;
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isWide = constraints.maxWidth >= 900;
 
-                              if (isWide) {
-                                return Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      flex: 2,
-                                      child: _buildTaskStream(context, taskState),
-                                    ),
-                                    const SizedBox(width: 20),
-                                    Expanded(
-                                      flex: 1,
-                                      child: _buildSidePanel(context, taskState),
-                                    ),
-                                  ],
-                                );
-                              }
+                          if (isWide) {
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: _buildTaskStream(context, taskState),
+                                ),
+                                const SizedBox(width: 20),
+                                Expanded(
+                                  flex: 1,
+                                  child: _buildSidePanel(context, taskState),
+                                ),
+                              ],
+                            );
+                          }
 
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  _buildTaskStream(context, taskState),
-                                  const SizedBox(height: 20),
-                                  _buildSidePanel(context, taskState),
-                                ],
-                              );
-                            },
-                          ),
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildTaskStream(context, taskState),
+                              const SizedBox(height: 20),
+                              _buildSidePanel(context, taskState),
+                            ],
+                          );
+                        },
+                      ),
                         ),
                       ),
                     ),

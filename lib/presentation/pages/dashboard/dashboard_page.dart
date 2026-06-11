@@ -487,10 +487,10 @@ class DashboardPage extends StatelessWidget {
         .state
         .templates
         .map((template) => template.title)
-        .toList(growable: false);
+        .toList(growable: true);
     final controllers = (existingTitles.isEmpty ? [''] : existingTitles)
-      .map((title) => TextEditingController(text: title))
-        .toList(growable: false);
+        .map((title) => TextEditingController(text: title))
+        .toList(growable: true);
 
     final result = await showDialog<List<String>>(
       context: context,
@@ -528,11 +528,9 @@ class DashboardPage extends StatelessWidget {
                               ),
                               const SizedBox(width: 8),
                               IconButton(
-                                onPressed: controllers.length == 1
-                                    ? null
-                                    : () => setDialogState(() {
-                                          controllers.removeAt(index).dispose();
-                                        }),
+                                onPressed: () => setDialogState(() {
+                                  controllers.removeAt(index).dispose();
+                                }),
                                 icon: const Icon(Icons.remove_circle_outline),
                                 tooltip: 'Remove goal',
                               ),

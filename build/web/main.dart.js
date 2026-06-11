@@ -139840,25 +139840,21 @@ return A.iE(null,null,new A.avW(s,A.e5("MMMM yyyy",null).d_(s)),t.qA,t.z9)},
 CA(a){return this.aOs(a)},
 aOs(a){var s=0,r=A.r(t.H),q,p,o,n,m,l,k,j,i
 var $async$CA=A.t(function(b,c){if(b===1)return A.o(c,r)
-for(;;)switch(s){case 0:k=t.kc
-j=A.b6(a,!1,k).c.c
-i=A.U(j).h("S<1,j>")
-j=A.Q(new A.S(j,new A.awe(),i),i.h("a9.E"))
-j.$flags=1
-p=j
-j=p.length===0?A.b([""],t.s):p
-i=A.U(j).h("S<1,dK>")
-j=A.Q(new A.S(j,new A.awf(),i),i.h("a9.E"))
-j.$flags=1
-o=j
+for(;;)switch(s){case 0:l=t.kc
+k=A.b6(a,!1,l).c.c
+j=A.U(k).h("S<1,j>")
+i=A.Q(new A.S(k,new A.awe(),j),j.h("a9.E"))
+k=i.length===0?A.b([""],t.s):i
+j=A.U(k).h("S<1,dK>")
+p=A.Q(new A.S(k,new A.awf(),j),j.h("a9.E"))
 s=3
-return A.i(A.j6(null,null,!0,null,new A.awg(o,p),a,null,!0,t.yp),$async$CA)
-case 3:n=c
-for(j=o.length,m=0;m<j;++m){l=o[m]
-l.W$=$.al()
-l.T$=0}if(a.e==null||n==null){s=1
+return A.i(A.j6(null,null,!0,null,new A.awg(p,i),a,null,!0,t.yp),$async$CA)
+case 3:o=c
+for(k=p.length,n=0;n<k;++n){m=p[n]
+m.W$=$.al()
+m.T$=0}if(a.e==null||o==null){s=1
 break}s=4
-return A.i(A.b6(a,!1,k).uJ(n),$async$CA)
+return A.i(A.b6(a,!1,l).uJ(o),$async$CA)
 case 4:case 1:return A.p(q,r)}})
 return A.q($async$CA,r)},
 R3(a,b,c,d,e){var s,r,q,p,o=null,n=A.x(a).ax,m=b==null?n.b:b,l=n.RG
@@ -139978,8 +139974,7 @@ $2(a,b){var s,r,q,p,o,n=null,m=t.p,l=A.b([A.aa("Set the recurring checklist you 
 for(s=this.b,r=0;r<j;r=o){q=k[r]
 p=r===0&&s.length===0
 o=r+1
-q=A.iy(n,B.bR,p,n,!0,B.a6,n,A.kd(),q,n,n,n,n,n,2,new A.fh(n,n,n,"Goal "+o,n,n,n,n,n,n,"Drink water, review tasks, workout...",n,n,n,n,n,!0,!0,!1,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,!0,n,n,n,n),B.ag,!0,n,!0,n,!1,n,B.bN,n,n,n,n,n,n,n,n,1,n,n,!1,"\u2022",n,n,n,n,n,!1,n,n,!1,n,!0,n,B.bj,n,n,n,n,n,n,n,n,n,n,n,n,!0,B.aF,n,B.c1,n,n,n,n)
-i[r]=new A.an(B.al1,A.bI(A.b([new A.ma(1,B.i6,q,n),B.fJ,A.e6(n,n,n,B.asj,n,n,k.length===1?n:new A.aw9(b,k,r),n,n,n,"Remove goal",n)],m),B.V,B.H,B.N,0,n),n)}B.m.I(l,i)
+i[r]=new A.an(B.al1,A.bI(A.b([new A.ma(1,B.i6,A.iy(n,B.bR,p,n,!0,B.a6,n,A.kd(),q,n,n,n,n,n,2,new A.fh(n,n,n,"Goal "+o,n,n,n,n,n,n,"Drink water, review tasks, workout...",n,n,n,n,n,!0,!0,!1,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,n,!0,n,n,n,n),B.ag,!0,n,!0,n,!1,n,B.bN,n,n,n,n,n,n,n,n,1,n,n,!1,"\u2022",n,n,n,n,n,!1,n,n,!1,n,!0,n,B.bj,n,n,n,n,n,n,n,n,n,n,n,n,!0,B.aF,n,B.c1,n,n,n,n),n),B.fJ,A.e6(n,n,n,B.asj,n,n,new A.aw9(b,k,r),n,n,n,"Remove goal",n)],m),B.V,B.H,B.N,0,n),n)}B.m.I(l,i)
 l.push(A.brk(B.js,B.bB2,new A.awa(b,k)))
 l=A.tJ(A.bh(l,B.ay,B.H,B.aT,0,B.a4),n,B.ag,n,n,n,B.aC)
 s=this.c

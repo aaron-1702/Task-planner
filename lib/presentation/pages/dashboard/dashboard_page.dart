@@ -366,12 +366,6 @@ class DashboardPage extends StatelessWidget {
               ),
           const SizedBox(height: 18),
         ],
-        _buildSectionHeader(
-          context,
-          'Daily goals',
-          Icons.repeat_rounded,
-        ),
-        const SizedBox(height: 12),
         _buildDailyGoalSummary(context),
       ],
     );

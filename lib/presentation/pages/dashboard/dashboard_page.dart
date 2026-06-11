@@ -489,7 +489,7 @@ class DashboardPage extends StatelessWidget {
         .map((template) => template.title)
         .toList(growable: false);
     final controllers = (existingTitles.isEmpty ? [''] : existingTitles)
-        .map(TextEditingController.new)
+      .map((title) => TextEditingController(text: title))
         .toList(growable: false);
 
     final result = await showDialog<List<String>>(

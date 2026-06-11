@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../blocs/auth/auth_bloc.dart';
 import '../blocs/calendar_event/cal_event_bloc.dart';
+import '../blocs/daily_goal/daily_goal_cubit.dart';
 import '../blocs/learning_goal/learning_goal_cubit.dart';
 import '../blocs/work_goal/work_goal_cubit.dart';
 import '../blocs/task/task_bloc.dart';
@@ -59,6 +60,7 @@ class _MainShellState extends State<MainShell> {
         context.read<CalendarEventBloc>().add(
               CalendarEventSubscriptionRequested(authState.user.id),
             );
+        context.read<DailyGoalCubit>().setUser(authState.user.id);
         context.read<LearningGoalCubit>().setUser(authState.user.id);
         context.read<WorkGoalCubit>().setUser(authState.user.id);
         getIt<SyncService>().start(authState.user.id);
@@ -94,6 +96,7 @@ class _MainShellState extends State<MainShell> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthUnauthenticated) {
+          context.read<DailyGoalCubit>().clearUser();
           context.read<LearningGoalCubit>().clearUser();
           context.read<WorkGoalCubit>().clearUser();
           getIt<SyncService>().stop();
@@ -102,6 +105,7 @@ class _MainShellState extends State<MainShell> {
           context.read<TaskBloc>().add(
                 TaskSubscriptionRequested(state.user.id),
               );
+          context.read<DailyGoalCubit>().setUser(state.user.id);
           context.read<LearningGoalCubit>().setUser(state.user.id);
           context.read<WorkGoalCubit>().setUser(state.user.id);
           getIt<SyncService>().start(state.user.id);

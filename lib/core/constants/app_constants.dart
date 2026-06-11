@@ -33,6 +33,11 @@ class AppConstants {
   static const String workGoalMinutesKeyPrefix = 'work_goal_minutes';
   static const String workGoalUpdatedAtKeyPrefix = 'work_goal_updated_at';
   static const String workGoalPendingKeyPrefix = 'work_goal_pending';
+  static const String dailyGoalTemplatesKeyPrefix = 'daily_goal_templates';
+  static const String dailyGoalCompletionsKeyPrefix =
+      'daily_goal_completions';
+  static const String dailyGoalUpdatedAtKeyPrefix = 'daily_goal_updated_at';
+  static const String dailyGoalPendingKeyPrefix = 'daily_goal_pending';
 
   // Pagination
   static const int pageSize = 30;

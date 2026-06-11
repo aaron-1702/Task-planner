@@ -5,10 +5,12 @@ import 'package:go_router/go_router.dart';
 import 'config/router.dart';
 import 'config/theme.dart';
 import 'core/di/injection.dart';
+import 'data/datasources/remote/daily_goal_remote_store.dart';
 import 'data/datasources/remote/learning_goal_remote_store.dart';
 import 'data/datasources/remote/work_goal_remote_store.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/calendar_event/cal_event_bloc.dart';
+import 'presentation/blocs/daily_goal/daily_goal_cubit.dart';
 import 'presentation/blocs/learning_goal/learning_goal_cubit.dart';
 import 'presentation/blocs/work_goal/work_goal_cubit.dart';
 import 'presentation/blocs/task/task_bloc.dart';
@@ -54,6 +56,11 @@ class _SmartTaskPlannerAppState extends State<SmartTaskPlannerApp> {
           create: (_) => LearningGoalCubit(
             getIt<WatchLearningEntriesUseCase>(),
             SupabaseLearningGoalRemoteStore(getIt()),
+          ),
+        ),
+        BlocProvider(
+          create: (_) => DailyGoalCubit(
+            SupabaseDailyGoalRemoteStore(getIt()),
           ),
         ),
         BlocProvider(

@@ -5,10 +5,12 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../blocs/auth/auth_bloc.dart';
+import '../../blocs/daily_goal/daily_goal_cubit.dart';
 import '../../blocs/learning_goal/learning_goal_cubit.dart';
 import '../../blocs/task/task_bloc.dart';
 import '../../blocs/theme/theme_cubit.dart';
 import '../../blocs/work_goal/work_goal_cubit.dart';
+import '../../widgets/daily_goal_progress_card.dart';
 import '../../widgets/monthly_learning_progress_card.dart';
 import '../../widgets/stats_summary_card.dart';
 import '../../widgets/task_card.dart';
@@ -388,6 +390,8 @@ class DashboardPage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        _buildDailyGoalSummary(context),
+        const SizedBox(height: 12),
         _buildWorkGoalSummary(context),
         const SizedBox(height: 12),
         _buildLearningGoalSummary(context),
@@ -396,6 +400,34 @@ class DashboardPage extends StatelessWidget {
         const SizedBox(height: 12),
         _buildQuickActionsCard(context),
       ],
+    );
+  }
+
+  Widget _buildDailyGoalSummary(BuildContext context) {
+    final today = DateTime.now();
+    final dateLabel = DateFormat('EEEE, MMMM d').format(today);
+
+    return BlocBuilder<DailyGoalCubit, DailyGoalState>(
+      builder: (context, state) {
+        final goals = state.goalsForDate(today);
+
+        return DailyGoalProgressCard(
+          title: 'Daily goals',
+          dateLabel: dateLabel,
+          goals: goals,
+          completedCount: state.completedCountForDate(today),
+          progress: state.progressForDate(today),
+          actionLabel: goals.isEmpty ? 'Set goals' : 'Edit goals',
+          onActionPressed: () => _showDailyGoalEditor(context),
+          onGoalChanged: (goal) {
+            context.read<DailyGoalCubit>().toggleGoalCompletion(
+                  date: today,
+                  goalId: goal.id,
+                  isCompleted: goal.isCompleted,
+                );
+          },
+        ).animate().fadeIn(duration: 400.ms, delay: 120.ms);
+      },
     );
   }
 
@@ -447,6 +479,106 @@ class DashboardPage extends StatelessWidget {
         ).animate().fadeIn(duration: 400.ms, delay: 180.ms);
       },
     );
+  }
+
+  Future<void> _showDailyGoalEditor(BuildContext context) async {
+    final existingTitles = context
+        .read<DailyGoalCubit>()
+        .state
+        .templates
+        .map((template) => template.title)
+        .toList(growable: false);
+    final controllers = (existingTitles.isEmpty ? [''] : existingTitles)
+        .map(TextEditingController.new)
+        .toList(growable: false);
+
+    final result = await showDialog<List<String>>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Daily goals'),
+              content: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Set the recurring checklist you want to complete each day.',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 16),
+                      ...List.generate(controllers.length, (index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: controllers[index],
+                                  autofocus: index == 0 && existingTitles.isEmpty,
+                                  decoration: InputDecoration(
+                                    labelText: 'Goal ${index + 1}',
+                                    hintText: 'Drink water, review tasks, workout...',
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                onPressed: controllers.length == 1
+                                    ? null
+                                    : () => setDialogState(() {
+                                          controllers.removeAt(index).dispose();
+                                        }),
+                                icon: const Icon(Icons.remove_circle_outline),
+                                tooltip: 'Remove goal',
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                      TextButton.icon(
+                        onPressed: () => setDialogState(() {
+                          controllers.add(TextEditingController());
+                        }),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add goal'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    final values = controllers
+                        .map((controller) => controller.text.trim())
+                        .where((value) => value.isNotEmpty)
+                        .toList(growable: false);
+                    Navigator.of(dialogContext).pop(values);
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    for (final controller in controllers) {
+      controller.dispose();
+    }
+
+    if (!context.mounted || result == null) return;
+    await context.read<DailyGoalCubit>().setGoals(result);
   }
 
   Widget _buildInsightCard(BuildContext context, TaskState taskState) {

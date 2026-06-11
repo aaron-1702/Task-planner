@@ -5,28 +5,71 @@ $APP_DIR     = "C:\Users\aaron\Desktop\Apps\smart_task_planner"
 $BUILD_DIR   = "$APP_DIR\build\web"
 $PORT        = 8080
 $PROFILE_DIR = "$env:APPDATA\SmartTaskPlanner\ChromeProfile"
+$ENV_FILE    = Join-Path $APP_DIR '.env'
+$BUILD_SIG_FILE = Join-Path $BUILD_DIR '.source_build_id'
 
-# ── Supabase Keys aus .env laden ───────────────────────────────────────────
-$envFile = Join-Path $APP_DIR '.env'
-if (-not (Test-Path $envFile)) {
+if (-not (Test-Path $ENV_FILE)) {
     Write-Error "FEHLER: .env Datei nicht gefunden! Bitte .env.example kopieren und ausfuellen."
     exit 1
-}
-Get-Content $envFile | Where-Object { $_ -match '^[^#].*=.*' } | ForEach-Object {
-    $parts = $_ -split '=', 2
-    Set-Variable -Name $parts[0].Trim() -Value $parts[1].Trim()
 }
 
 $env:PATH += ";$FLUTTER_BIN"
 
-# ── Beim ersten Start: App bauen ─────────────────────────────────────────────
-if (-not (Test-Path "$BUILD_DIR\index.html")) {
+function Get-BuildSignature {
+    $hashInputs = @(
+        (Join-Path $APP_DIR 'pubspec.yaml'),
+        (Join-Path $APP_DIR 'pubspec.lock'),
+        (Join-Path $APP_DIR 'SmartTaskPlanner_Launcher.ps1'),
+        (Join-Path $APP_DIR 'SmartTaskPlanner_Build.bat'),
+        (Join-Path $APP_DIR 'vercel.json'),
+        $ENV_FILE
+    )
+
+    $folders = @(
+        (Join-Path $APP_DIR 'lib'),
+        (Join-Path $APP_DIR 'web'),
+        (Join-Path $APP_DIR 'assets')
+    )
+
+    foreach ($folder in $folders) {
+        if (Test-Path $folder) {
+            $hashInputs += Get-ChildItem -Path $folder -Recurse -File |
+                Sort-Object FullName |
+                Select-Object -ExpandProperty FullName
+        }
+    }
+
+    $parts = foreach ($path in $hashInputs | Where-Object { Test-Path $_ }) {
+        "$path=$((Get-FileHash -Path $path -Algorithm SHA256).Hash)"
+    }
+
+    $joined = [System.String]::Join('|', $parts)
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($joined)
+    $stream = [System.IO.MemoryStream]::new($bytes)
+    try {
+        return (Get-FileHash -InputStream $stream -Algorithm SHA256).Hash
+    } finally {
+        $stream.Dispose()
+    }
+}
+
+function Invoke-AppBuild {
     Set-Location $APP_DIR
     & dart run flutter_launcher_icons | Out-Null
     if ($LASTEXITCODE -ne 0) { exit 1 }
-    & flutter build web --release `
-        "--dart-define=SUPABASE_URL=$SUPABASE_URL" `
-        "--dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" | Out-Null
+
+    & flutter build web --release --no-wasm-dry-run --dart-define-from-file=.env | Out-Null
+    if ($LASTEXITCODE -ne 0) { exit 1 }
+
+    New-Item -ItemType Directory -Force -Path $BUILD_DIR | Out-Null
+    Set-Content -Path $BUILD_SIG_FILE -Value (Get-BuildSignature)
+}
+
+$currentSignature = Get-BuildSignature
+$storedSignature = if (Test-Path $BUILD_SIG_FILE) { Get-Content $BUILD_SIG_FILE -Raw } else { '' }
+
+if ((-not (Test-Path "$BUILD_DIR\index.html")) -or ($currentSignature.Trim() -ne $storedSignature.Trim())) {
+    Invoke-AppBuild
 }
 
 # ── Alten Server auf Port beenden ────────────────────────────────────────────

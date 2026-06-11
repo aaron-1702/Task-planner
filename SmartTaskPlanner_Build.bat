@@ -4,15 +4,13 @@ title Smart Task Planner - Build
 
 set "FLUTTER_BIN=%USERPROFILE%\flutter\bin"
 set "APP_DIR=C:\Users\aaron\Desktop\Apps\smart_task_planner"
+set "ENV_FILE=%APP_DIR%\.env"
 
 REM ── Supabase Keys aus .env laden ─────────────────────────────────────────────
-if not exist "%APP_DIR%\.env" (
+if not exist "%ENV_FILE%" (
     echo FEHLER: .env Datei nicht gefunden! Bitte .env.example kopieren und ausfuellen.
     pause
     exit /b 1
-)
-for /f "usebackq eol=# tokens=1,* delims==" %%A in ("%APP_DIR%\.env") do (
-    if not "%%A"=="" set "%%A=%%B"
 )
 set "PATH=%PATH%;%FLUTTER_BIN%"
 
@@ -34,9 +32,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-call flutter build web --release ^
-    --dart-define=SUPABASE_URL=%SUPABASE_URL% ^
-    --dart-define=SUPABASE_ANON_KEY=%SUPABASE_ANON_KEY%
+call flutter build web --release --no-wasm-dry-run --dart-define-from-file=.env
 
 if errorlevel 1 (
     echo.

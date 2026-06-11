@@ -368,20 +368,11 @@ class DashboardPage extends StatelessWidget {
         ],
         _buildSectionHeader(
           context,
-          "Today's Tasks",
-          Icons.today_outlined,
-          count: taskState.todayTasks.length,
+          'Daily goals',
+          Icons.repeat_rounded,
         ),
         const SizedBox(height: 12),
-        if (taskState.todayTasks.isEmpty)
-          _buildEmptyDay(context)
-        else
-          ...taskState.todayTasks.map(
-            (task) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: TaskCard(task: task),
-            ),
-          ),
+        _buildDailyGoalSummary(context),
       ],
     );
   }
@@ -390,7 +381,7 @@ class DashboardPage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildDailyGoalSummary(context),
+        _buildTodayTasksPanel(context, taskState),
         const SizedBox(height: 12),
         _buildWorkGoalSummary(context),
         const SizedBox(height: 12),
@@ -401,6 +392,70 @@ class DashboardPage extends StatelessWidget {
         _buildQuickActionsCard(context),
       ],
     );
+  }
+
+  Widget _buildTodayTasksPanel(BuildContext context, TaskState taskState) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.today_outlined,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  "Today's tasks",
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                const Spacer(),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${taskState.todayTasks.length}',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (taskState.todayTasks.isEmpty)
+              _buildEmptyDay(context)
+            else ...[
+              ...taskState.todayTasks.take(3).map(
+                    (task) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: TaskCard(task: task),
+                    ),
+                  ),
+              if (taskState.todayTasks.length > 3)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: () => context.goNamed('tasks'),
+                    icon: const Icon(Icons.open_in_new, size: 16),
+                    label: const Text('View all today tasks'),
+                  ),
+                ),
+            ],
+          ],
+        ),
+      ),
+    ).animate().fadeIn(duration: 400.ms, delay: 120.ms);
   }
 
   Widget _buildDailyGoalSummary(BuildContext context) {

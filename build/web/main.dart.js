@@ -43229,7 +43229,7 @@ break
 case 4:s=1
 break
 case 7:s=9
-return A.i(A.aWH("placeholder",B.bpA,"https://placeholder.supabase.co"),$async$DI)
+return A.i(A.aWH("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjc25nYmd4a3Jpc3RzcWV4Z2t3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczODIyMTMsImV4cCI6MjA5Mjk1ODIxM30.UBwpVsI_1xWVE5xcfwY7wXWWvd3PuMa9x4EYz8c9oZY",B.bpA,"https://pcsngbgxkristsqexgkw.supabase.co"),$async$DI)
 case 9:n=$.jI()
 A.bMM(n)
 s=10

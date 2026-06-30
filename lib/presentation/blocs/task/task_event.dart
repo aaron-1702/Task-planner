@@ -19,6 +19,7 @@ class TaskCreated extends TaskEvent {
   final String? description;
   final DateTime? deadline;
   final TaskPriority priority;
+  final TaskStatus status;
   final List<String> tags;
   final String? categoryId;
   final RecurrenceRule? recurrenceRule;
@@ -31,6 +32,7 @@ class TaskCreated extends TaskEvent {
     this.description,
     this.deadline,
     this.priority = TaskPriority.medium,
+    this.status = TaskStatus.open,
     this.tags = const [],
     this.categoryId,
     this.recurrenceRule,
@@ -45,6 +47,7 @@ class TaskCreated extends TaskEvent {
         description,
         deadline,
         priority,
+        status,
         tags,
         categoryId,
         recurrenceRule,

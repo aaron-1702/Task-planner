@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../domain/entities/task.dart';
 import '../../../domain/usecases/task_usecases.dart';
+import '../../../services/esp32_export_service.dart';
 
 part 'task_event.dart';
 part 'task_state.dart';
@@ -41,10 +42,13 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
     await _tasksSubscription?.cancel();
     await emit.forEach<List<Task>>(
       _watchTasks(event.userId),
-      onData: (tasks) => state.copyWith(
-        status: TaskLoadStatus.success,
-        tasks: tasks,
-      ),
+      onData: (tasks) {
+        unawaited(Esp32ExportService.writeTodayTasks(tasks));
+        return state.copyWith(
+          status: TaskLoadStatus.success,
+          tasks: tasks,
+        );
+      },
       onError: (e, _) => state.copyWith(
         status: TaskLoadStatus.failure,
         error: e.toString(),
@@ -61,7 +65,7 @@ class TaskBloc extends Bloc<TaskEvent, TaskState> {
       description: event.description,
       deadline: event.deadline,
       priority: event.priority,
-      status: TaskStatus.open,
+      status: event.status,
       tags: event.tags,
       categoryId: event.categoryId,
       recurrenceRule: event.recurrenceRule,

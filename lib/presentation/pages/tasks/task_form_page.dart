@@ -230,6 +230,7 @@ class _TaskFormPageState extends State<TaskFormPage> {
             description: description?.isEmpty == true ? null : description,
             deadline: deadline,
             priority: priority,
+            status: status,
             tags: tags,
             recurrenceRule: rule,
             estimatedMinutes: estimatedMinutes,

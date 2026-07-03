@@ -26,6 +26,7 @@ class SyncService {
   final LocalDatabase _local;
 
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
+  StreamSubscription<AuthState>? _authStateSub;
   RealtimeChannel? _tasksChannel;
   RealtimeChannel? _workEntriesChannel;
   RealtimeChannel? _learningEntriesChannel;
@@ -50,6 +51,16 @@ class SyncService {
     _connectivitySub =
         Connectivity().onConnectivityChanged.listen(_onConnectivityChanged);
 
+    // Re-subscribe to Realtime whenever the JWT is refreshed so channels
+    // never keep using an expired token.
+    _authStateSub?.cancel();
+    _authStateSub = _supabase.auth.onAuthStateChange.listen((event) {
+      if (event.event == AuthChangeEvent.tokenRefreshed &&
+          _currentUserId != null) {
+        _subscribeToRealtime(_currentUserId!);
+      }
+    });
+
     // Supabase Realtime subscriptions
     _subscribeToRealtime(userId);
 
@@ -63,6 +74,8 @@ class SyncService {
 
   Future<void> stop() async {
     _connectivitySub?.cancel();
+    _authStateSub?.cancel();
+    _authStateSub = null;
     _tasksChannel?.unsubscribe();
     _workEntriesChannel?.unsubscribe();
     _learningEntriesChannel?.unsubscribe();

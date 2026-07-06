@@ -2,6 +2,8 @@
 
 A production-ready, cross-platform task management and calendar app for **Windows** and **Android**, built with a single Flutter codebase.
 
+🌐 **Live Demo:** [task-planner-omega-one.vercel.app](https://task-planner-omega-one.vercel.app)
+
 ---
 
 ## Tech Stack
